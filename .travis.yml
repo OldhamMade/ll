@@ -1,8 +1,8 @@
 language: c
 
 before_install:
-  - wget http://http.us.debian.org/debian/pool/main/n/nim/nim_0.18.0-2_amd64.deb
-  - wget http://http.us.debian.org/debian/pool/main/o/openssl1.0/libssl1.0.2_1.0.2l-2_amd64.deb
+  - curl -OLC http://http.us.debian.org/debian/pool/main/n/nim/nim_0.18.0-2_amd64.deb
+  - curl -OLC http://http.us.debian.org/debian/pool/main/o/openssl1.0/libssl1.0.2_1.0.2l-2_amd64.deb
   - sudo dpkg -i *_amd64.deb
 
 jobs:
