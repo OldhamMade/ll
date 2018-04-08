@@ -18,11 +18,11 @@ before_install:
   - "echo -e '\\n. $HOME/.asdf/completions/asdf.bash' >> $HOME/.bashrc"
   - "source $HOME/.bashrc"
   - |
-      if [ "" -eq "$(asdf plugin-list | grep nim)" ]; then
+      if [[ "" -eq "$(asdf plugin-list | grep nim)" ]]; then
          asdf plugin-add nim https://github.com/rfrancis/asdf-nim
       fi
   - |
-      if [ "" -eq "$(asdf list nim | grep v0.18.0)" ]; then
+      if [[ "" -eq "$(asdf list nim | grep v0.18.0)" ]]; then
         asdf install nim v0.18.0
       fi
   - "asdf global nim v0.18.0"
