@@ -17,4 +17,5 @@ before_install:
 jobs:
   include:
     - stage: run tests
-      script: nimble build && nimble test
+      script: >
+        NIM_LIB_PREFIX=$HOME/.asdf/0.4.3/installs/nim/v0.18.0 && nimble build && nimble test
