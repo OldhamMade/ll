@@ -11,7 +11,7 @@ before_install:
 before_install: 
   - "sudo apt-get update"
   - |
-      if [ -d "$HOME/.asdf" ]; then
+      if [ ! -d "$HOME/.asdf" ]; then
         git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.4.3
       fi
   - "echo -e '\\n. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc"
