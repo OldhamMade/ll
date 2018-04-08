@@ -3,6 +3,10 @@ sudo: false
 
 language: c
 
+cache:
+  directories:
+    - $HOME/.asdf/
+
 before_install:
   - "sudo apt-get update"
   - "[ ! -d \"$HOME/.asdf\" ] && git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.4.3"
