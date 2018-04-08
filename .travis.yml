@@ -8,15 +8,22 @@ cache:
   directories:
     - $HOME/.asdf
 
-before_install:
-  - sudo apt-get update
-  - "[ ! -d ~/.asdf ] && git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.4.3"
-  - echo -e '\n. $HOME/.asdf/asdf.sh' >> ~/.bashrc
-  - echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> ~/.bashrc
-  - source ~/.bashrc
-  - asdf plugin-add nim https://github.com/rfrancis/asdf-nim
-  - asdf install nim v0.18.0
-  - asdf global nim v0.18.0
+before_install: >-
+  if [ -d $HOME/.asdf ]; then
+    echo "asdf found, skipping install"
+    echo -e '\n. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc
+    echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> $HOME/.bashrc
+    source ~/.bashrc
+  else
+    sudo apt-get update
+    git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.4.3
+    echo -e '\n. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc
+    echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> $HOME/.bashrc
+    source $HOME/.bashrc
+    asdf plugin-add nim https://github.com/rfrancis/asdf-nim
+    asdf install nim v0.18.0
+    asdf global nim v0.18.0
+  fi
 
 jobs:
   include:
