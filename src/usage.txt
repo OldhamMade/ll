@@ -1,0 +1,17 @@
+ll - a better ls
+
+Usage:
+  ll [-a | -A] [-d | -D] [-h | -H] [-V] [<path>]
+  ll --help
+  ll --version
+
+Options:
+  -a --all           list entries starting with .
+  -A --almost-all    list all except . and ..
+  -d --directory     list only directories
+  -D --no-directory  do not list directories
+  -h --human         show filesizes in human-readable format
+  -H --si            with -h, use powers of 1000 not 1024
+  -V --no-vcs        do not get VCS status (faster)
+  -v --version       Show version
+  --help             Show this screen

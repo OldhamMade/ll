@@ -1,0 +1,35 @@
+dist: trusty
+sudo: false 
+
+language: c
+
+cache:
+  directories:
+    - $HOME/.asdf/
+
+before_install:
+before_install: 
+  - "sudo apt-get update"
+  - |
+      if [ ! -f "$HOME/.asdf/asdf.sh" ]; then
+        git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.4.3
+      fi
+  - "echo -e '\\n. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc"
+  - "echo -e '\\n. $HOME/.asdf/completions/asdf.bash' >> $HOME/.bashrc"
+  - "source $HOME/.bashrc"
+  - |
+      if [ ! -f "$HOME/.asdf/plugins/nim/bin/install" ]; then
+         asdf plugin-add nim https://github.com/rfrancis/asdf-nim
+      fi
+  - |
+      if [ ! -f "$HOME/.asdf/installs/nim/v0.18.0/bin/nim" ]; then
+        asdf install nim v0.18.0
+      fi
+  - "asdf global nim v0.18.0"
+  - "export NIM_LIB_PREFIX=$HOME/.asdf/installs/nim/v0.18.0"
+
+jobs:
+  include:
+    - stage: run tests
+      script: >
+        nimble build -y && nimble test -y
