@@ -8,24 +8,26 @@ cache:
     - $HOME/.asdf/
 
 before_install:
+before_install: 
   - "sudo apt-get update"
   - |
-    if [ -d "$HOME/.asdf" ]; then
-      echo -e '\n. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc
-      echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> $HOME/.bashrc
-      source $HOME/.bashrc"
-      asdf current nim
-    else
-      git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.4.3
-      echo -e '\n. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc
-      echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> $HOME/.bashrc
-      source $HOME/.bashrc"
-      asdf plugin-add nim https://github.com/rfrancis/asdf-nim
-      asdf install nim v0.18.0
-    fi
-    asdf global nim v0.18.0
-    export NIM_LIB_PREFIX=$HOME/.asdf/installs/nim/v0.18.0
-  
+      if [ -d "$HOME/.asdf" ]; then
+        git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.4.3
+      fi
+  - "echo -e '\\n. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc"
+  - "echo -e '\\n. $HOME/.asdf/completions/asdf.bash' >> $HOME/.bashrc"
+  - "source $HOME/.bashrc"
+  - |
+      if [ "" -eq "$(asdf plugin-list | grep nim)" ]; then
+         asdf plugin-add nim https://github.com/rfrancis/asdf-nim
+      fi
+  - |
+      if [ "" -eq "$(asdf list nim | grep v0.18.0)" ]; then
+        asdf install nim v0.18.0
+      fi
+  - "asdf global nim v0.18.0"
+  - "export NIM_LIB_PREFIX=$HOME/.asdf/installs/nim/v0.18.0"
+
 jobs:
   include:
     - stage: run tests
