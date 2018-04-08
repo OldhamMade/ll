@@ -12,6 +12,7 @@ before_install:
   - asdf plugin-add nim https://github.com/rfrancis/asdf-nim
   - asdf install nim v0.18.0
   - asdf global nim v0.18.0
+  - export NIM_LIB_PREFIX=$HOME/.asdf/0.4.3/installs/nim/v0.18.0
 
 jobs:
   include:
