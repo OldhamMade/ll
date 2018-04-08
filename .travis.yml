@@ -4,18 +4,18 @@ sudo: false
 language: c
 
 before_install:
-  - sudo apt-get update
-  - git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.4.3
-  - echo -e '\n. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc
-  - echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> $HOME/.bashrc
-  - source $HOME/.bashrc
-  - asdf plugin-add nim https://github.com/rfrancis/asdf-nim
-  - asdf install nim v0.18.0
-  - asdf global nim v0.18.0
-  - export NIM_LIB_PREFIX=$HOME/.asdf/0.4.3/installs/nim/v0.18.0
+  - "sudo apt-get update"
+  - "[ ! -d \"$HOME/.asdf\" ] && git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.4.3"
+  - "echo -e '\\n. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc"
+  - "echo -e '\\n. $HOME/.asdf/completions/asdf.bash' >> $HOME/.bashrc"
+  - "source $HOME/.bashrc"
+  - "asdf plugin-add nim https://github.com/rfrancis/asdf-nim"
+  - "asdf install nim v0.18.0"
+  - "asdf global nim v0.18.0"
+  - "export NIM_LIB_PREFIX=$HOME/.asdf/0.4.3/installs/nim/v0.18.0"
 
 jobs:
   include:
     - stage: run tests
       script: >
-        NIM_LIB_PREFIX=$HOME/.asdf/0.4.3/installs/nim/v0.18.0 && nimble build && nimble test
+        export NIM_LIB_PREFIX=$HOME/.asdf/0.4.3/installs/nim/v0.18.0 && nimble build && nimble test
