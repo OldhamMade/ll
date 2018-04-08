@@ -7,7 +7,7 @@ cache:
 
 before_install:
   - sudo apt-get update
-  - git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.4.3
+  - [ ! -d ~/.asdf ] && git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.4.3
   - echo -e '\n. $HOME/.asdf/asdf.sh' >> ~/.bashrc
   - echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> ~/.bashrc
   - source ~/.bashrc
