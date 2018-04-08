@@ -22,8 +22,8 @@ before_install: >-
     source $HOME/.bashrc
     asdf plugin-add nim https://github.com/rfrancis/asdf-nim
     asdf install nim v0.18.0
-    asdf global nim v0.18.0
   fi
+  asdf global nim v0.18.0
 
 jobs:
   include:
