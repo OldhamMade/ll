@@ -18,4 +18,4 @@ before_install:
 jobs:
   include:
     - stage: run tests
-      script: make all
+      script: nimble build && nimble test
