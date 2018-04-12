@@ -3,16 +3,22 @@
 include ll
 
 import algorithm
-import strutils
+import future
 import os
-import oids
+import re
+import sequtils
+import strutils
 import unittest
+
 import tempfile
 import colorize
 
-var tmpdir: string = nil
 
-proc setUpSuite() =
+var
+  tmpdir: string = nil
+
+
+proc setUpBasicListing() =
   tmpdir = mkdtemp()
   if tmpdir != nil:
     echo "  [su] Created tmpdir: $#".format(tmpdir).fg_dark_gray()
@@ -21,8 +27,28 @@ proc setUpSuite() =
     writeFile(tmpdir / $i, $i)
 
 
+proc setUpDirectoryListing() =
+  tmpdir = mkdtemp()
+  if tmpdir != nil:
+    echo "  [su] Created tmpdir: $#".format(tmpdir).fg_dark_gray()
+
+  for i in 1..9:
+    createDir(tmpdir / $i)
+
+
+proc setUpSymlinkListing() =
+  tmpdir = mkdtemp()
+  if tmpdir != nil:
+    echo "  [su] Created tmpdir: $#".format(tmpdir).fg_dark_gray()
+
+  for i in 1..4:
+    writeFile(tmpdir / $i, $i)
+
+  for pair in zip(toSeq(1..4), toSeq(5..9)):
+    createSymlink(tmpdir / $pair.a, tmpdir / $pair.b)
+
+
 proc tearDownSuite() =
-  
   if tmpdir != nil:
     removeDir(tmpdir)
     if not existsDir(tmpdir):
@@ -31,21 +57,193 @@ proc tearDownSuite() =
       ).fg_dark_gray()
 
 
+proc getExampleOutput() =
+  echo "\nExample output:"
+  echo ll(tmpdir)
+  echo ""
+
+
+proc isSummaryLine(line: string): bool =
+  return line[0] notin ['l', 'd', '-']
+
+
 suite "basic file listing tests":
 
-  setUpSuite()
+  setUpBasicListing()
   
   test "it returns the correct number of entries":
-    var lines = ll(tmpdir).splitLines()
-    var entries: seq[string]
+    var
+      lines = ll(tmpdir).splitLines()
+      entries: seq[string]
+
+    lines = filter(lines, (l) => not l.isSummaryLine)
 
     entries = @[]
     
     for line in lines:
-      if $line != "":
-        entries.add(line)
+      entries.add(line)
 
     check entries.len == 9
 
+  test "it returns sorted entries":
+    var
+      entries: seq[string]
+      expected: seq[string]
+      lines = ll(tmpdir).splitLines()
+
+    lines = filter(lines, (l) => not l.isSummaryLine)
+
+    entries = @[]
+    expected = @[]
+
+    for i in 1..9:
+      expected.add($i)
+
+    for line in lines:
+      entries.add($line[^1])
+
+    check entries.len == expected.len
+    check entries == expected
+
+  test "it contains permissions":
+    var
+      lines = ll(tmpdir).splitLines()
+    
+    lines = filter(lines, (l) => not l.isSummaryLine)
+
+    for line in lines:
+      var permissions = line.split[0]
+      permissions = permissions[1..^1]
+      
+      check permissions.len == 9
+      
+      for permission in permissions:
+        check permission in ['r', 'w', 'x', '-']
+
+  test "it contains owner details":
+    var
+      lines = ll(tmpdir).splitLines()
+    
+    lines = filter(lines, (l) => not l.isSummaryLine)
+
+    let
+      reUnixName = re"\b[a-zA-Z]+[a-zA-Z_0-9]*\b"
+ 
+    for line in lines:
+      var
+        parts = line.split
+        user = parts[3]
+        group = parts[4]
+
+      check:
+        match(user, reUnixName)
+        match(group, reUnixName)
+
+  test "it contains a modified datetime":
+    var
+      lines = ll(tmpdir).splitLines()
+    
+    lines = filter(lines, (l) => not l.isSummaryLine)
+
+    let
+      reDay = re"\b\d\d?\b"
+      reMonth = re"[JFMASOND][a-z]{2}"
+      reYear = re"[0-2]\d:[0-5]\d"
+ 
+    for line in lines:
+      var
+        parts = line.split
+        day = parts[8]
+        month = parts[9]
+        time = parts[10]
+
+      check:
+        match(day, reDay)
+        match(month, reMonth)
+        match(time, reYear)
+
+  getExampleOutput()
   tearDownSuite()
 
+
+suite "directory listing tests":
+  
+  setUpDirectoryListing()
+
+  test "it returns the correct number of entries":
+    var
+      lines = ll(tmpdir).splitLines()
+      entries: seq[string]
+
+    lines = filter(lines, (l) => not l.isSummaryLine)
+
+    entries = @[]
+    
+    for line in lines:
+      entries.add(line)
+
+    check entries.len == 9
+
+  test "it identifies directories":
+    var
+      lines = ll(tmpdir).splitLines()
+
+    lines = filter(lines, (l) => not l.isSummaryLine)
+
+    for line in lines:
+      check line[0] == 'd'
+    
+  getExampleOutput()
+  tearDownSuite()
+
+
+suite "symlink listing tests":
+  
+  setUpSymlinkListing()
+
+  test "it returns the correct number of entries":
+    var
+      lines = ll(tmpdir).splitLines()
+      entries: seq[string]
+
+    lines = filter(lines, (l) => not l.isSummaryLine)
+
+    entries = @[]
+    
+    for line in lines:
+      entries.add(line)
+
+    check entries.len == 8
+
+  test "it identifies symlinks":
+    var
+      lines = ll(tmpdir).splitLines()
+      entries: seq[string]
+
+    lines = filter(lines, (l) => not l.isSummaryLine)
+
+    entries = @[]
+    
+    for line in lines:
+      if line[0] == 'l':
+         entries.add(line)
+
+    check entries.len == 4
+    
+  test "it displays symlinks":
+    var
+      lines = ll(tmpdir).splitLines()
+      entries: seq[string]
+
+    lines = filter(lines, (l) => not l.isSummaryLine)
+
+    entries = @[]
+    
+    for line in lines:
+      if " -> " in line:
+         entries.add(line)
+
+    check entries.len == 4
+    
+  getExampleOutput()
+  tearDownSuite()
