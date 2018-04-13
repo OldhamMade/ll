@@ -15,26 +15,26 @@ something a little more general-purpose that could be used without the `zsh` dep
 
 ## Features
 
-### [ ] Full file listing
+### Full file listing
 
 Calling `ll` provides a full file listing for a directory, similar to calling `ls -l`.
 
-### [ ] File weight colours
+### File weight colours
 
 Files sizes are graded from green for small (< 1k), to red for huge (> 1mb).
 
 Human readable files sizes can be shown by using the `-h` flag, and using `-H` will display
 file sizes using a power of 1000 instead of 1024.
 
-### [ ] "Rotting" dates
+### "Rotting" dates
 
 Dates fade with age, so that recently changed files/directories can be easily identified.
 
 ### Git integration
 
-#### [ ] Git status on entire repos
+#### Git status on entire repos
 
-#### [ ] Git status on files within a working tree
+#### Git status on files within a working tree
 
 ## Usage
 
@@ -50,6 +50,14 @@ and we'll do our best to address them.
 
 Contributions and pull-requests are always welcome, as is constructive feedback around 
 code structure, hints, tips, etc. 
+
+### Status
+
+- [x] Full file listing
+- [ ] File weight colours
+- [ ] "Rotting" dates
+- [ ] Git status on entire repos
+- [ ] Git status on files within a working tree
 
 
 [1]: https://github.com/supercrabtree/k
