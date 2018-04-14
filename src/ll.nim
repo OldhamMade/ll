@@ -1,7 +1,9 @@
 import algorithm
 import future
 import os
+import parseutils
 import posix
+import sequtils
 import strutils
 import tables
 import times
@@ -16,7 +18,21 @@ const
 
 
 type
-  Entry = ref object
+  DisplayAll {.pure.} = enum
+    all,
+    hidden,
+    default
+
+  DisplaySize {.pure.} = enum
+    human,
+    default
+
+  DisplayOpts = object
+    all: DisplayAll
+    size: DisplaySize
+    vcs: bool
+
+  Entry = object
     name: string
     path: string
     id: tuple[device: DeviceId, file: FileId]
@@ -32,20 +48,7 @@ type
     symlink: string
     hidden: bool
 
-
-proc getLongestValue(key: string, items: seq[Entry]): uint32 =
-  var
-    values: seq[int]
-
-  values = @[]
-
-  for item in items:
-    for k, v in item[].fieldPairs:
-      if k == key:
-        let s = $v
-        values.add(s.len)
-
-  return max(values).uint32
+  ColArray = array[0..7, string]
 
 
 proc getFileDetails(path: string, name: string, kind: PathComponent): Entry =
@@ -53,11 +56,11 @@ proc getFileDetails(path: string, name: string, kind: PathComponent): Entry =
     fullpath = path / name
     entry = Entry()
     info = getFileInfo(fullpath, false)
-    
+
   entry.name = name
   entry.path = expandFilename(fullpath)
   entry.hidden = false
-  
+
   if entry.name[0] == '.':
     entry.hidden = true
 
@@ -97,7 +100,7 @@ proc formatKind(entry: Entry): string =
 
 proc formatPermissions(entry: Entry): string =
   let
-    tests = @[
+    tests = [
       (perm: FilePermission.fpUserRead, val: "r"),
       (perm: FilePermission.fpUserWrite, val: "w"),
       (perm: FilePermission.fpUserExec, val: "x"),
@@ -108,7 +111,7 @@ proc formatPermissions(entry: Entry): string =
       (perm: FilePermission.fpOthersWrite, val: "w"),
       (perm: FilePermission.fpOthersExec, val: "x"),
     ]
-    
+
   var
     permissions: seq[string]
 
@@ -119,25 +122,20 @@ proc formatPermissions(entry: Entry): string =
       permissions.add(test.val)
     else:
       permissions.add("-")
-    
+
   return permissions.join
 
 
-proc formatLinks(entry: Entry, max: uint32): string =
-  return align($entry.linkCount, max + 1)
+proc formatLinks(entry: Entry): string =
+  $entry.linkCount
 
 
-proc formatOwner(entry: Entry): string =
-  var
-    output: seq[string]
-    user = getpwuid(entry.owner.user)
-    group = getgrgid(entry.owner.group)
+proc formatUser(entry: Entry): string =
+  $getpwuid(entry.owner.user).pw_name
 
-  output = @[]
-  output.add($user.pw_name)
-  output.add($group.gr_name)
-  
-  return output.join(" ")
+
+proc formatGroup(entry: Entry): string =
+  $getgrgid(entry.owner.group).gr_name
 
 
 proc formatTime(entry: Entry): string =
@@ -146,19 +144,41 @@ proc formatTime(entry: Entry): string =
   return align(localtime.format("d"), 3) & localtime.format(" MMM HH:mm ")
 
 
-proc formatSize(entry: Entry, max: uint32): string =
-  return align($entry.size, max + 1)
+proc formatSizeReadable(size: int64): string =
+  var
+    formatted = formatSize(size, includeSpace=true).split
+    num = formatted[0]
+    suffix = formatted[1][0].toUpperAscii
+    parsed: float
+
+  discard parseFloat(num, parsed)
+
+  if parsed < 10.0:
+    result = parsed.formatFloat(ffDecimal, 1)
+  else:
+    result = parsed.formatFloat(ffDecimal, 0, decimalSep=' ').strip
+
+  if suffix != 'K':
+    result.removeSuffix(".0")
+
+  if suffix == 'B':
+    result &= ""
+  else:
+    result &= $suffix
+
+
+proc formatSize(entry: Entry, fmt: DisplaySize): string =
+  return if fmt == DisplaySize.human: formatSizeReadable(entry.size.int64)
+         else: $entry.size
 
 
 proc formatName(entry: Entry): string =
-  return entry.name
+  entry.name
 
 
 proc formatSymlink(entry: Entry): string =
-  if entry.symlink != nil:
-    return "-> " & entry.symlink
-
-  return ""
+  return if entry.symlink != nil: "-> " & entry.symlink
+         else: ""
 
 
 proc formatSummary(entries: seq[Entry]): string =
@@ -168,62 +188,118 @@ proc formatSummary(entries: seq[Entry]): string =
   for entry in entries:
     blocks += entry.blocks
 
-  return "total $#".format(blocks)
+  "total $#".format(blocks)
 
 
-proc formatEntries(entries: seq[Entry]): string =
+proc getWidth(items: seq[ColArray], offset = 0): int =
+  max(map(items, (i) => i[offset].len))
+
+
+proc getWidths(items: seq[ColArray]): seq[int] =
+  result = @[]
+  for i in 0..<items[0].len:
+    result.add(getWidth(items, i))
+
+
+proc tabulate(items: seq[ColArray]): string =
   var
-    output: seq[string]
-    parts: seq[string]
+    lines: seq[string]
+    widths = getWidths(items)
 
-  output = @[]
+  lines = @[]
 
-  output.add(formatSummary(entries))
-    
+  for item in items:
+    lines.add([
+      # permissions
+      item[0],
+
+      # linkCount
+      align(item[1], widths[1] + 1),
+
+      # user
+      alignLeft(item[2], widths[2]),
+
+      # group
+      alignLeft(item[3], widths[3]),
+
+      # size
+      align(item[4], widths[4] + 1),
+
+      # mtime
+      align(item[5], widths[5]),
+
+      # name
+      item[6],
+
+      # symlink
+      item[7]
+    ].join(" "))
+
+  lines.join("\n")
+
+
+proc formatAttributes(entries: seq[Entry], displayopts: DisplayOpts): seq[ColArray] =
+  var
+    attrs: ColArray
+
+  result = @[]
+
   for entry in entries:
-    parts = @[]
+    attrs = [
+      formatKind(entry) & formatPermissions(entry),
+      formatLinks(entry),
+      formatUser(entry),
+      formatGroup(entry),
+      formatSize(entry, displayopts.size),
+      formatTime(entry),
+      formatName(entry),
+      formatSymlink(entry),
+    ]
 
-    parts.add(formatKind(entry) & formatPermissions(entry))
-    parts.add(formatLinks(entry, getLongestValue("linkCount", entries)))
-    parts.add(formatOwner(entry))
-    parts.add(formatSize(entry, getLongestValue("size", entries)))
-    parts.add(formatTime(entry))
-    parts.add(formatName(entry))
-    parts.add(formatSymlink(entry))
-    
-    output.add(parts.join(" ").strip)
-
-  return output.join("\n")
+    result.add(attrs)
 
 
-proc getFileList(path: string): seq[Entry] =
-  var
-    entries: seq[Entry]
+proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
+  result = @[]
 
-  entries = @[]
-  
+  if displayopts.all == DisplayAll.all:
+    result.add(getFileDetails(path, ".", PathComponent.pcDir))
+    result.add(getFileDetails(path, "..", PathComponent.pcDir))
+
   for kind, name in walkDir(path, relative=true):
-    entries.add(getFileDetails(path, name, kind))
+    if displayopts.all == DisplayAll.default and name[0] == '.':
+      continue
+    result.add(getFileDetails(path, name, kind))
 
-  return entries.sortedByIt(it.name)
+  return result.sortedByIt(it.name)
 
 
 proc ll(path: string,
         all = false, aall = true,
         dirs = true, no_dirs = false,
-        human = false, si = false,
-        no_vcs = true): string =
+        human = false, vcs = true): string =
+
+  var
+    optAll =
+      if all: DisplayAll.all
+      elif aall: DisplayAll.hidden
+      else: DisplayAll.default
+    optSize =
+      if human: DisplaySize.human
+      else: DisplaySize.default
 
   let
-    entries = getFileList(path)
-    output = formatEntries(entries)
-  
-  return output
+    displayOpts = DisplayOpts(all: optAll, size: optSize, vcs: vcs)
+    entries = getFileList(path, displayOpts)
+    formatted = formatAttributes(entries, displayOpts)
+
+  result = formatSummary(entries) & "\n"
+  result &= tabulate(formatted)
 
 
 proc getTargetPath(path: string): string =
   var path = path
-  
+
   case path
   of "":
     path = getCurrentDir()
@@ -245,11 +321,13 @@ when isMainModule:
 
   let args = docopt(Usage, version=AppVersionFull)
 
-  var target_path = if not args["<path>"]: ""
-                    else: $args["<path>"]
-  
+  var
+    target_path =
+      if not args["<path>"]: ""
+      else: $args["<path>"]
+
   target_path = getTargetPath(target_path)
-  
+
   echo ll(
     path=target_path,
     all=args["--all"],
@@ -257,6 +335,5 @@ when isMainModule:
     dirs=args["--directory"],
     no_dirs=args["--no-directory"],
     human=args["--human"],
-    si=args["--si"],
-    no_vcs=args["--no-vcs"]
+    vcs=not args["--no-vcs"]
   )

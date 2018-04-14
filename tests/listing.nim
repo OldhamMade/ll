@@ -100,7 +100,10 @@ suite "basic file listing tests":
       expected.add($i)
 
     for line in lines:
-      entries.add($line[^1])
+      var
+        parts = line.split(re"\s+")
+
+      entries.add(parts[8])
 
     check entries.len == expected.len
     check entries == expected
@@ -131,9 +134,9 @@ suite "basic file listing tests":
  
     for line in lines:
       var
-        parts = line.split
-        user = parts[3]
-        group = parts[4]
+        parts = line.split(re"\s+")
+        user = parts[2]
+        group = parts[3]
 
       check:
         match(user, reUnixName)
@@ -152,10 +155,10 @@ suite "basic file listing tests":
  
     for line in lines:
       var
-        parts = line.split
-        day = parts[8]
-        month = parts[9]
-        time = parts[10]
+        parts = line.split(re"\s+")
+        day = parts[5]
+        month = parts[6]
+        time = parts[7]
 
       check:
         match(day, reDay)

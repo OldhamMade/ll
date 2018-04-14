@@ -1,4 +1,4 @@
-PHONY: release build test fulltest clean
+PHONY: release build test clean
 
 all:
 	build && test
