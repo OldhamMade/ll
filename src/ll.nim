@@ -153,10 +153,8 @@ proc formatSizeReadable(size: int64): string =
 
   discard parseFloat(num, parsed)
 
-  if parsed < 10.0:
-    result = parsed.formatFloat(ffDecimal, 1)
-  else:
-    result = parsed.formatFloat(ffDecimal, 0, decimalSep=' ').strip
+  result = if parsed < 10.0: parsed.formatFloat(ffDecimal, 1)
+           else: parsed.formatFloat(ffDecimal, 0, decimalSep=' ').strip
 
   if suffix != 'K':
     result.removeSuffix(".0")
@@ -245,7 +243,7 @@ proc formatAttributes(entries: seq[Entry], displayopts: DisplayOpts): seq[ColArr
   result = @[]
 
   for entry in entries:
-    attrs = [
+    result.add([
       formatKind(entry) & formatPermissions(entry),
       formatLinks(entry),
       formatUser(entry),
@@ -254,9 +252,7 @@ proc formatAttributes(entries: seq[Entry], displayopts: DisplayOpts): seq[ColArr
       formatTime(entry),
       formatName(entry),
       formatSymlink(entry),
-    ]
-
-    result.add(attrs)
+    ])
 
 
 proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
