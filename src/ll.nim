@@ -1,4 +1,5 @@
 import algorithm
+import colorize
 import future
 import os
 import parseutils
@@ -46,9 +47,21 @@ type
     blocks: int
     owner: tuple[group: Gid, user: Uid]
     symlink: string
+    executable: bool
     hidden: bool
 
-  ColArray = array[0..7, string]
+  ColArray = array[0..8, string]
+
+
+# Colour map
+var
+  colDirectory = fgBlue
+  colSymlink = fgMagenta
+  colExecutable = fgRed
+
+
+proc isExecutable(perms: set[FilePermission]): bool =
+  {FilePermission.fpUserExec, FilePermission.fpGroupExec, FilePermission.fpOthersExec} - perms == {}
 
 
 proc getFileDetails(path: string, name: string, kind: PathComponent): Entry =
@@ -82,6 +95,8 @@ proc getFileDetails(path: string, name: string, kind: PathComponent): Entry =
 
   entry.owner = (group: stat.st_gid, user: stat.st_uid)
   entry.blocks = stat.st_blocks
+
+  entry.executable = isExecutable(info.permissions)
 
   return entry
 
@@ -171,11 +186,28 @@ proc formatSize(entry: Entry, fmt: DisplaySize): string =
 
 
 proc formatName(entry: Entry): string =
-  entry.name
+  if entry.kind == pcDir:
+    return entry.name.colDirectory
+
+  if entry.symlink != nil and existsDir(entry.symlink):
+    return entry.name.colDirectory
+
+  if entry.symlink != nil:
+    return entry.name.colSymlink
+
+  if entry.executable:
+    return entry.name.colExecutable
+
+  return entry.name
+
+
+proc formatArrow(entry: Entry): string =
+  return if entry.symlink != nil: "->"
+         else: ""
 
 
 proc formatSymlink(entry: Entry): string =
-  return if entry.symlink != nil: "-> " & entry.symlink
+  return if entry.symlink != nil: entry.symlink
          else: ""
 
 
@@ -210,36 +242,28 @@ proc tabulate(items: seq[ColArray]): string =
     lines.add([
       # permissions
       item[0],
-
       # linkCount
       align(item[1], widths[1] + 1),
-
       # user
       alignLeft(item[2], widths[2]),
-
       # group
       alignLeft(item[3], widths[3]),
-
       # size
       align(item[4], widths[4] + 1),
-
       # mtime
       align(item[5], widths[5]),
-
       # name
       item[6],
-
+      # arrow
+      item[7],
       # symlink
-      item[7]
-    ].join(" "))
+      item[8],
+    ].join(" ").strip)
 
   lines.join("\n")
 
 
 proc formatAttributes(entries: seq[Entry], displayopts: DisplayOpts): seq[ColArray] =
-  var
-    attrs: ColArray
-
   result = @[]
 
   for entry in entries:
@@ -251,6 +275,7 @@ proc formatAttributes(entries: seq[Entry], displayopts: DisplayOpts): seq[ColArr
       formatSize(entry, displayopts.size),
       formatTime(entry),
       formatName(entry),
+      formatArrow(entry),
       formatSymlink(entry),
     ])
 

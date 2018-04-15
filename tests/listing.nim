@@ -63,6 +63,10 @@ proc getExampleOutput() =
   echo ""
 
 
+proc clean(s: string): string =
+  s.replace(re"\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]", "")
+
+
 proc isSummaryLine(line: string): bool =
   return line[0] notin ['l', 'd', '-']
 
@@ -104,6 +108,8 @@ suite "basic file listing tests":
         parts = line.split(re"\s+")
 
       entries.add(parts[8])
+
+    entries = map(entries, (e) => e.clean)
 
     check entries.len == expected.len
     check entries == expected
