@@ -13,6 +13,8 @@ import unittest
 import tempfile
 import colorize
 
+import util
+
 
 var
   tmpdir: string = nil
@@ -61,14 +63,6 @@ proc getExampleOutput() =
   echo "\nExample output:"
   echo ll(tmpdir)
   echo ""
-
-
-proc clean(s: string): string =
-  s.replace(re"\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]", "")
-
-
-proc isSummaryLine(line: string): bool =
-  return line[0] notin ['l', 'd', '-']
 
 
 suite "basic file listing tests":
