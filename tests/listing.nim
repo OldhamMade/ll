@@ -135,8 +135,8 @@ suite "basic file listing tests":
     for line in lines:
       var
         parts = line.split(re"\s+")
-        user = parts[2]
-        group = parts[3]
+        user = parts[2].clean
+        group = parts[3].clean
 
       check:
         match(user, reUnixName)
