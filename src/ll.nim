@@ -76,6 +76,7 @@ var
   colExecutableSetguid = (s: string) => s.fgBlack.bgRed
   colDirectoryWritableStickyBit = (s: string) => s.fgBlack.bgGreen
   colDirectoryWritable = (s: string) => s.fgBlack.bgYellow
+  colOwner = (s: string) => "\e[38;5;241m" & s & "\e[0m"
 
 
 proc isExecutable(perms: set[FilePermission]): bool =
@@ -207,11 +208,13 @@ proc formatLinks(entry: Entry): string =
 
 
 proc formatUser(entry: Entry): string =
-  $getpwuid(entry.owner.user).pw_name
+  result = $getpwuid(entry.owner.user).pw_name
+  result = result.colOwner
 
 
 proc formatGroup(entry: Entry): string =
-  $getgrgid(entry.owner.group).gr_name
+  result = $getgrgid(entry.owner.group).gr_name
+  result = result.colOwner
 
 
 proc formatTime(entry: Entry): string =
