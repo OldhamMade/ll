@@ -2,6 +2,7 @@
 # anything to be used by other libs/packages
 include ll
 
+import future
 import strutils
 import os
 import unittest
@@ -10,12 +11,17 @@ import unittest
 suite "basic path tests":
 
   test "it provides absolute paths for common shortcuts":
+    let
+      trim = (s: string) => s.strip(leading=false, chars={'/'})
+    
     check:
-      getTargetPath("..") == getCurrentDir() / ".."
-      getTargetPath(".") == getCurrentDir()
-      getTargetPath("~") == getHomeDir()
+      getTargetPath("..").trim == expandFilename(getCurrentDir() / "..").trim
+      getTargetPath(".").trim == getCurrentDir().trim
+      getTargetPath("~").trim == getHomeDir().trim
 
 
   test "it recognises absolute paths":
-    check:
-      getTargetPath("/tmp") == "/tmp"
+    if defined(macosx):
+      check getTargetPath("/tmp") == "/private/tmp"
+    else:
+      check getTargetPath("/tmp") == "/tmp"

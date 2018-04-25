@@ -13,6 +13,8 @@ import unittest
 import tempfile
 import colorize
 
+import util
+
 
 var
   tmpdir: string = nil
@@ -63,10 +65,6 @@ proc getExampleOutput() =
   echo ""
 
 
-proc isSummaryLine(line: string): bool =
-  return line[0] notin ['l', 'd', '-']
-
-
 suite "basic file listing tests":
 
   setUpBasicListing()
@@ -104,6 +102,8 @@ suite "basic file listing tests":
         parts = line.split(re"\s+")
 
       entries.add(parts[8])
+
+    entries = map(entries, (e) => e.clean)
 
     check entries.len == expected.len
     check entries == expected
