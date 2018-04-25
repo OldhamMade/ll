@@ -163,42 +163,41 @@ proc formatKind(entry: Entry): string =
   if entry.kind == FileType.File:
     return "-"
 
-  "$#".format($entry.kind)[0..0].toLowerAscii
+  result = $entry.kind
+  result = result[0..0].toLowerAscii
 
 
 proc formatPermissions(entry: Entry): string =
   let
     tests = [
-      (perm: FilePermission.fpUserRead, val: "r"),
-      (perm: FilePermission.fpUserWrite, val: "w"),
-      (perm: FilePermission.fpUserExec, val: "x"),
-      (perm: FilePermission.fpGroupRead, val: "r"),
-      (perm: FilePermission.fpGroupWrite, val: "w"),
-      (perm: FilePermission.fpGroupExec, val: "x"),
-      (perm: FilePermission.fpOthersRead, val: "r"),
-      (perm: FilePermission.fpOthersWrite, val: "w"),
-      (perm: FilePermission.fpOthersExec, val: "x"),
+      (perm: FilePermission.fpUserRead, val: 'r'),
+      (perm: FilePermission.fpUserWrite, val: 'w'),
+      (perm: FilePermission.fpUserExec, val: 'x'),
+      (perm: FilePermission.fpGroupRead, val: 'r'),
+      (perm: FilePermission.fpGroupWrite, val: 'w'),
+      (perm: FilePermission.fpGroupExec, val: 'x'),
+      (perm: FilePermission.fpOthersRead, val: 'r'),
+      (perm: FilePermission.fpOthersWrite, val: 'w'),
+      (perm: FilePermission.fpOthersExec, val: 'x'),
     ]
 
   var
-    permissions: seq[string]
+    permissions: array[tests.len, char]
 
-  permissions = @[]
-
-  for test in tests:
+  for i, test in tests:
     if test.perm in entry.permissions:
-      permissions.add(test.val)
+      permissions[i] = test.val
     else:
-      permissions.add("-")
+      permissions[i] = '-'
 
   if isUID(entry.mode):
-    permissions[2] = "S"
+    permissions[2] = 'S'
 
   if isGID(entry.mode):
-    permissions[5] = "S"
+    permissions[5] = 'S'
 
   if FilePermission.fpOthersExec in entry.permissions and hasStickyBit(entry.mode):
-    permissions[8] = "t"
+    permissions[8] = 't'
 
   return permissions.join
 
