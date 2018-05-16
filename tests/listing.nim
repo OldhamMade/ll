@@ -11,7 +11,6 @@ import strutils
 import unittest
 
 import tempfile
-import colorize
 
 import util
 
@@ -20,10 +19,11 @@ var
   tmpdir: string = nil
 
 
+
 proc setUpBasicListing() =
   tmpdir = mkdtemp()
   if tmpdir != nil:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fg_dark_gray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..9:
     writeFile(tmpdir / $i, $i)
@@ -32,7 +32,7 @@ proc setUpBasicListing() =
 proc setUpDirectoryListing() =
   tmpdir = mkdtemp()
   if tmpdir != nil:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fg_dark_gray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..9:
     createDir(tmpdir / $i)
@@ -41,7 +41,7 @@ proc setUpDirectoryListing() =
 proc setUpSymlinkListing() =
   tmpdir = mkdtemp()
   if tmpdir != nil:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fg_dark_gray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..4:
     writeFile(tmpdir / $i, $i)
@@ -56,7 +56,7 @@ proc tearDownSuite() =
     if not existsDir(tmpdir):
       echo "  [td] Removed tmpdir: $#".format(
         tmpdir,
-      ).fg_dark_gray()
+      ).fgDarkGray()
 
 
 proc getExampleOutput() =

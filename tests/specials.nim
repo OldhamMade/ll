@@ -6,7 +6,6 @@ import future
 import unittest
 
 import tempfile
-import colorize
 
 import util
 
@@ -18,7 +17,7 @@ var
 proc setUpSetUIDListing() =
   tmpdir = mkdtemp()
   if tmpdir != nil:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fg_dark_gray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..3:
     writeFile(tmpdir / $i, $i)
@@ -28,7 +27,7 @@ proc setUpSetUIDListing() =
 proc setUpSetGIDListing() =
   tmpdir = mkdtemp()
   if tmpdir != nil:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fg_dark_gray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..3:
     writeFile(tmpdir / $i, $i)
@@ -41,7 +40,7 @@ proc tearDownSuite() =
     if not existsDir(tmpdir):
       echo "  [td] Removed tmpdir: $#".format(
         tmpdir,
-      ).fg_dark_gray()
+      ).fgDarkGray()
 
 
 proc getExampleOutput() =

@@ -1,5 +1,4 @@
 import algorithm
-import colorize
 import future
 import os
 import parseutils
@@ -9,6 +8,8 @@ import strutils
 import tables
 import times
 import typeinfo
+
+import colors
 
 
 const
@@ -63,20 +64,8 @@ type
   ColArray = array[0..8, string]
 
 
-# Colour map
 var
-  colDirectory = fgBlue
-  colSymlink = fgMagenta
-  colExecutable = fgRed
-  colSocket = fgGreen
-  colPipe = fgYellow
-  colBlockSpecial = (s: string) => s.fgBlue.bgCyan
-  colCharSpecial = (s: string) => s.fgBlue.bgYellow
-  colExecutableSetuid = (s: string) => s.fgBlack.bgCyan
-  colExecutableSetguid = (s: string) => s.fgBlack.bgRed
-  colDirectoryWritableStickyBit = (s: string) => s.fgBlack.bgGreen
-  colDirectoryWritable = (s: string) => s.fgBlack.bgYellow
-  colOwner = (s: string) => "\e[38;5;241m" & s & "\e[0m"
+  now = epochTime()
 
 
 proc isExecutable(perms: set[FilePermission]): bool =
@@ -218,9 +207,18 @@ proc formatGroup(entry: Entry): string =
 
 
 proc formatTime(entry: Entry): string =
-  var
+  let
+    ancient = now() - initInterval(months=6)
     localtime = inZone(entry.lastWriteTime, local())
-  return align(localtime.format("d"), 3) & localtime.format(" MMM HH:mm ")
+    mtime = localtime.toTime.toUnix.float
+    age = int(now - mtime)
+
+  result = if mtime < ancient.toTime.toUnix.float: localtime.format(" MMM  yyyy ")
+           else: localtime.format(" MMM HH:mm ")
+
+  result = align(localtime.format("d"), 3) & result  
+
+  result = result.colByAge(age)
 
 
 proc formatSizeReadable(size: int64): string =
