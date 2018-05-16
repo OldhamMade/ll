@@ -18,7 +18,7 @@ type
     LightMagenta,
     LightCyan,
     White
-  
+
 
 const
   ages* = [

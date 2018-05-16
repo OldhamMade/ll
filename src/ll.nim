@@ -64,7 +64,7 @@ type
   ColArray = array[0..8, string]
 
 
-var
+let
   now = epochTime()
 
 

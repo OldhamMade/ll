@@ -1,1 +1,1 @@
-import paths, listing, sizes, specials
+import path_tests, listing_tests, size_tests, color_tests, specials_tests

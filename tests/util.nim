@@ -10,5 +10,5 @@ proc isSummaryLine*(line: string): bool =
   return line[0] notin ['l', 'd', '-']
 
 
-var
+let
   fgDarkGray* = (s: string) => "\e[90m" & s & "\e[0m"

@@ -101,7 +101,7 @@ suite "basic file listing tests":
       var
         parts = line.split(re"\s+")
 
-      entries.add(parts[8])
+      entries.add(parts[^1])
 
     entries = map(entries, (e) => e.clean)
 
@@ -155,10 +155,14 @@ suite "basic file listing tests":
  
     for line in lines:
       var
-        parts = line.split(re"\s+")
-        day = parts[5]
-        month = parts[6]
-        time = parts[7]
+        parts = line.split(re"\s+")[5..9]
+        joined, day, month, time: string
+
+      joined = parts.join(" ").clean
+      parts = joined.split(re"\s+")
+      day = parts[1]
+      month = parts[2]
+      time = parts[3]
 
       check:
         match(day, reDay)
