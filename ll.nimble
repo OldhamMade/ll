@@ -6,13 +6,13 @@ description   = "ll - a more informative ls, based on k"
 license       = "MIT"
 srcDir        = "src"
 skipDirs      = @["tests"]
+skipFiles     = @["colors.nim"]
 bin           = @["ll"]
 
 # Dependencies
 
 requires "nim >= 0.18.0"
 requires "docopt >= 0.6.5"
-requires "colorize >= 0.2.0"
 requires "tempfile >= 0.1.5"
 
 # Tests
