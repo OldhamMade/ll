@@ -20,7 +20,7 @@ const
   AppVersionFull = "$1, version $2".format(AppName, AppVersion)
 
 let
-  Marker = re"\x1B\[([0-9]{1,2}(;[0-9]+)*)?[mGK]"
+  ColorCode = re"\x1B\[([0-9]{1,2}(;[0-9]+)*)?[mGK]"
   
 
 type
@@ -73,14 +73,14 @@ let
 
 
 proc clean(s: string): string =
-  s.replace(Marker, "")
+  s.replace(ColorCode, "")
 
 
 proc padLeft(s: string, l=0, c=' '): string =
   ## add `l` instances of `c`
   ## to the left side of string `s`
   let
-    markers = s.findAll(Marker)
+    markers = s.findAll(ColorCode)
   join([markers[0], align(s.clean(), l, c), markers[1]])
 
 
@@ -88,7 +88,7 @@ proc padRight(s: string, l=0, c=' '): string =
   ## add `l` instances of `c`
   ## to the right side of string `s`
   let
-    markers = s.findAll(Marker)
+    markers = s.findAll(ColorCode)
   join([markers[0], alignLeft(s.clean(), l, c), markers[1]])
 
 
