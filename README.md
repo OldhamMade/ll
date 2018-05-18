@@ -54,8 +54,8 @@ code structure, hints, tips, etc.
 ### Status
 
 - [x] Full file listing
-- [ ] File weight colours
-- [ ] "Rotting" dates
+- [x] File weight colours
+- [x] "Rotting" dates
 - [ ] Git status on entire repos
 - [ ] Git status on files within a working tree
 

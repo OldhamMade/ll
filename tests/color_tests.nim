@@ -17,3 +17,14 @@ suite "color display tests":
       new != old
       new != ancient
       old != ancient
+
+  test "it colorizes sizes":
+    let
+      tiny = colBySize("foo", 0.int)
+      small = colBySize("foo", 10000.int)
+      huge = colBySize("foo", 1000000000000.int)
+
+    check:
+      tiny != small
+      tiny != huge
+      small != huge
