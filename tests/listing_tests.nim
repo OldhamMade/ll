@@ -74,7 +74,7 @@ suite "basic file listing tests":
       lines = ll(tmpdir).splitLines()
       entries: seq[string]
 
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     entries = @[]
     
@@ -89,7 +89,7 @@ suite "basic file listing tests":
       expected: seq[string]
       lines = ll(tmpdir).splitLines()
 
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     entries = @[]
     expected = @[]
@@ -103,8 +103,6 @@ suite "basic file listing tests":
 
       entries.add(parts[^1])
 
-    entries = map(entries, (e) => e.clean)
-
     check entries.len == expected.len
     check entries == expected
 
@@ -112,7 +110,7 @@ suite "basic file listing tests":
     var
       lines = ll(tmpdir).splitLines()
     
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     for line in lines:
       var permissions = line.split[0]
@@ -127,7 +125,7 @@ suite "basic file listing tests":
     var
       lines = ll(tmpdir).splitLines()
     
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     let
       reUnixName = re"\b[a-zA-Z]+[a-zA-Z_0-9]*\b"
@@ -135,8 +133,8 @@ suite "basic file listing tests":
     for line in lines:
       var
         parts = line.split(re"\s+")
-        user = parts[2].clean
-        group = parts[3].clean
+        user = parts[2]
+        group = parts[3]
 
       check:
         match(user, reUnixName)
@@ -146,28 +144,26 @@ suite "basic file listing tests":
     var
       lines = ll(tmpdir).splitLines()
     
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     let
       reDay = re"\b\d\d?\b"
       reMonth = re"[JFMASOND][a-z]{2}"
-      reYear = re"[0-2]\d:[0-5]\d"
+      reTime = re"[0-2]\d:[0-5]\d"
  
     for line in lines:
       var
-        parts = line.split(re"\s+")[5..9]
-        joined, day, month, time: string
+        parts = line.split(re"\s+")[5..7]
+        day, month, time: string
 
-      joined = parts.join(" ").clean
-      parts = joined.split(re"\s+")
-      day = parts[1]
-      month = parts[2]
-      time = parts[3]
+      day = parts[0]
+      month = parts[1]
+      time = parts[2]
 
       check:
         match(day, reDay)
         match(month, reMonth)
-        match(time, reYear)
+        match(time, reTime)
 
   getExampleOutput()
   tearDownSuite()
@@ -182,7 +178,7 @@ suite "directory listing tests":
       lines = ll(tmpdir).splitLines()
       entries: seq[string]
 
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     entries = @[]
     
@@ -195,7 +191,7 @@ suite "directory listing tests":
     var
       lines = ll(tmpdir).splitLines()
 
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     for line in lines:
       check line[0] == 'd'
@@ -213,7 +209,7 @@ suite "symlink listing tests":
       lines = ll(tmpdir).splitLines()
       entries: seq[string]
 
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     entries = @[]
     
@@ -227,7 +223,7 @@ suite "symlink listing tests":
       lines = ll(tmpdir).splitLines()
       entries: seq[string]
 
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     entries = @[]
     
@@ -242,7 +238,7 @@ suite "symlink listing tests":
       lines = ll(tmpdir).splitLines()
       entries: seq[string]
 
-    lines = filter(lines, (l) => not l.isSummaryLine)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     entries = @[]
     
@@ -254,3 +250,76 @@ suite "symlink listing tests":
     
   getExampleOutput()
   tearDownSuite()
+
+
+suite "formatting tests":
+
+  test "it calculates widths correctly":
+    let
+      lines = @[
+        ["1",
+         "1",
+         "1",
+         "1",
+         "1",
+         "1",
+         "1",
+         "1",
+         "1",
+        ],
+        ["55555",
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+        ]
+      ]
+
+    check:
+      getWidth(lines) == 5
+
+  test "it calculates widths correctly for colorized values":
+    let
+      lines = @[
+        ["1".fgColor(1),
+         "1",
+         "1",
+         "1",
+         "1",
+         "1",
+         "1",
+         "1",
+         "1",
+        ],
+        ["55555".fgColor(2),
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+         "55555",
+        ]
+      ]
+
+    check:
+      getWidth(lines) == 5
+
+  test "it should left-pad colorized text":
+    let
+      text = "a".fgColor(2)
+
+    check:
+      padLeft(text, 5).clean == "    a"
+
+  test "it should right-pad colorized text":
+    let
+      text = "a".fgColor(2)
+
+    check:
+      padRight(text, 5).clean == "a    "

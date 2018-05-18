@@ -1,6 +1,7 @@
 import algorithm
 import future
 import os
+import re
 import parseutils
 import posix
 import sequtils
@@ -18,6 +19,9 @@ const
   AppVersion = "0.1.0"
   AppVersionFull = "$1, version $2".format(AppName, AppVersion)
 
+let
+  Marker = re"\x1B\[([0-9]{1,2}(;[0-9]+)*)?[mGK]"
+  
 
 type
   DisplayAll {.pure.} = enum
@@ -66,6 +70,26 @@ type
 
 let
   now = epochTime()
+
+
+proc clean(s: string): string =
+  s.replace(Marker, "")
+
+
+proc padLeft(s: string, l=0, c=' '): string =
+  ## add `l` instances of `c`
+  ## to the left side of string `s`
+  let
+    markers = s.findAll(Marker)
+  join([markers[0], align(s.clean(), l, c), markers[1]])
+
+
+proc padRight(s: string, l=0, c=' '): string =
+  ## add `l` instances of `c`
+  ## to the right side of string `s`
+  let
+    markers = s.findAll(Marker)
+  join([markers[0], alignLeft(s.clean(), l, c), markers[1]])
 
 
 proc isExecutable(perms: set[FilePermission]): bool =
@@ -243,8 +267,10 @@ proc formatSizeReadable(size: int64): string =
 
 
 proc formatSize(entry: Entry, fmt: DisplaySize): string =
-  return if fmt == DisplaySize.human: formatSizeReadable(entry.size.int64)
-         else: $entry.size
+  result = if fmt == DisplaySize.human: formatSizeReadable(entry.size.int64)
+           else: $entry.size
+
+  result = result.colBySize(entry.size.int)
 
 
 proc formatName(entry: Entry): string =
@@ -300,7 +326,7 @@ proc formatSummary(entries: seq[Entry]): string =
 
 
 proc getWidth(items: seq[ColArray], offset = 0): int =
-  max(map(items, (i) => i[offset].len))
+  max(map(items, (i) => i[offset].clean.len))
 
 
 proc getWidths(items: seq[ColArray]): seq[int] =
@@ -327,7 +353,7 @@ proc tabulate(items: seq[ColArray]): string =
       # group
       alignLeft(item[3], widths[3]),
       # size
-      align(item[4], widths[4] + 1),
+      padLeft(item[4], widths[4] + 1),
       # mtime
       align(item[5], widths[5]),
       # name

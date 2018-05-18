@@ -34,8 +34,22 @@ const
     (62899200, 238),  # less than 2 years old
   ]
   agesDefault* = 236  # more than 2 years old
+  sizes* = [
+    # size, color
+    (1024, 47),       # <= 1kb
+    (2048, 82),       # <= 2kb
+    (3072, 118),      # <= 3kb
+    (5120, 154),      # <= 5kb
+    (10240, 190),     # <= 10kb
+    (20480, 226),     # <= 20kb
+    (40960, 220),     # <= 40kb
+    (102400, 214),    # <= 100kb
+    (262144, 208),    # <= 0.25mb || 256kb
+    (524288, 202),    # <= 0.5mb || 512kb
+  ]
+  sizesDefault* = 196
 
-
+  
 proc reset(): string {.procvar.} =
   "\e[0m"
 
@@ -74,3 +88,11 @@ proc colByAge*(s: string, age: int): string {.procvar.} =
       return s.fgColor(color)
 
   s.fgColor(agesDefault)
+
+
+proc colBySize*(s: string, size: int): string {.procvar.} =
+  for boundary, color in items(sizes):
+    if size.int <= boundary:
+      return s.fgColor(color)
+
+  s.fgColor(sizesDefault)

@@ -25,7 +25,7 @@ suite "size display tests":
     for test in tests:
       let
         entry = Entry(size: test.value)
-        result = formatSize(entry, DisplaySize.default)
+        result = formatSize(entry, DisplaySize.default).clean
 
       check:
         result == test.expected
@@ -51,7 +51,7 @@ suite "size display tests":
     for test in tests:
       let
         entry = Entry(size: test.value)
-        result = formatSize(entry, DisplaySize.human)
+        result = formatSize(entry, DisplaySize.human).clean
 
       check:
         result == test.expected
