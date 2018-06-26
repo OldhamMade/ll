@@ -1,7 +1,8 @@
 import algorithm
 import future
+import memo
 import os
-import re
+import osproc
 import parseutils
 import posix
 import sequtils
@@ -10,7 +11,10 @@ import tables
 import times
 import typeinfo
 
-import colors
+when defined(profiler):
+  import nimprof
+
+import llpkg/display
 
 
 const
@@ -19,9 +23,6 @@ const
   AppVersion = "0.1.0"
   AppVersionFull = "$1, version $2".format(AppName, AppVersion)
 
-let
-  ColorCode = re"\x1B\[([0-9]{1,2}(;[0-9]+)*)?[mGK]"
-  
 
 type
   DisplayAll {.pure.} = enum
@@ -37,6 +38,18 @@ type
     all: DisplayAll
     size: DisplaySize
     vcs: bool
+    hasGit: bool
+
+  GitStatus {.pure.} = enum
+    Unknown,
+    WorkingCopyClean,
+    WorkingCopyDirty,
+    TrackedDirty,
+    TrackedDirtyAdded,
+    Untracked,
+    Ignored,
+    Added,
+    Good
 
   FileType {.pure.} = enum
     Block,
@@ -50,6 +63,7 @@ type
   Entry = object
     name: string
     path: string
+    parent: string
     id: tuple[device: DeviceId, file: FileId]
     kind: FileType
     size: BiggestInt
@@ -64,32 +78,35 @@ type
     executable: bool
     mode: Mode
     hidden: bool
+    gitInsideWorkTree: bool
+    gitStatus: GitStatus
 
-  ColArray = array[0..8, string]
+  ColArray = array[0..9, string]
+
+
+const
+  GitStatusMap = {
+    "!!": GitStatus.Ignored,
+    " M": GitStatus.TrackedDirty,
+    "M ": GitStatus.TrackedDirtyAdded,
+    "??": GitStatus.Untracked,
+    "A ": GitStatus.Added,
+  }.toTable
+
+  GitDisplayMap = {
+    GitStatus.WorkingCopyDirty: "+".fgColor(Color.Red),
+    GitStatus.WorkingCopyClean: "|".fgColor(Color.Green),
+    GitStatus.Good: "|".fgColor(82),
+    GitStatus.Ignored: "|".fgColor(241),
+    GitStatus.TrackedDirty: "+".fgColor(Color.Red),
+    GitStatus.TrackedDirtyAdded: "+".fgColor(82),
+    GitStatus.Untracked: "+".fgColor(214),
+    GitStatus.Added: "+".fgColor(82),
+  }.toTable
 
 
 let
   now = epochTime()
-
-
-proc clean(s: string): string =
-  s.replace(ColorCode, "")
-
-
-proc padLeft(s: string, l=0, c=' '): string =
-  ## add `l` instances of `c`
-  ## to the left side of string `s`
-  let
-    markers = s.findAll(ColorCode)
-  join([markers[0], align(s.clean(), l, c), markers[1]])
-
-
-proc padRight(s: string, l=0, c=' '): string =
-  ## add `l` instances of `c`
-  ## to the right side of string `s`
-  let
-    markers = s.findAll(ColorCode)
-  join([markers[0], alignLeft(s.clean(), l, c), markers[1]])
 
 
 proc isExecutable(perms: set[FilePermission]): bool =
@@ -135,7 +152,88 @@ proc getKind(mode: Mode): FileType =
     return FileType.Socket
 
 
-proc getFileDetails(path: string, name: string, kind: PathComponent): Entry =
+proc gitAvailable(executable="git"): bool =
+  let
+    output = execProcess(executable & " --version")
+  return executable & " version" in output
+
+
+proc gitTopLevel(path: string): string {.memoized.} =
+  return execProcess("cd $# && git rev-parse --show-toplevel".format(path)).strip
+
+
+proc gitTopLevelStatus(path: string): string {.memoized.} =
+  return execProcess(
+    "cd $# && git status --porcelain --ignored --untracked-files=normal .".format(path)
+  )
+
+
+proc gitInsideWorkTree(path: string): bool {.memoized.} =
+  return execProcess(
+    "cd $# && git rev-parse --is-inside-work-tree".format(path)
+  ).strip == "true"
+
+
+proc gitWorkTreeDirty(path: string): bool {.memoized.} =
+  return execProcess(
+    "git --git-dir=\"$#/.git\" --work-tree=\"$#\" diff --stat --ignore-submodules HEAD".format(
+      path,
+      path
+    )
+  ).strip != ""
+
+
+proc gitStatus(path: string): string =
+  var
+    (dir, name, ext) = splitFile(path)
+
+  let
+    base = gitTopLevel(dir)
+    details = gitTopLevelStatus(base).splitLines
+
+  for line in details:
+    if line.strip == "":
+      continue
+
+    let
+      status = line[0..1]
+      relpath = line[2..^1].strip
+      fullpath = joinPath(base, relpath).strip(leading=false, chars={'/'})
+
+    if not fullpath.startsWith(path):
+      continue
+
+    if path == fullpath or path.startsWith(fullpath):
+      return status
+
+    if existsDir(path) and fullpath.startsWith(path):
+      return status
+
+  return ""
+
+
+proc gitStatus(entry: Entry): GitStatus =
+  if not entry.gitInsideWorkTree:
+    return GitStatus.Unknown
+
+  let
+    status = gitStatus(entry.path)
+
+  if GitStatusMap.hasKey(status):
+    return GitStatusMap[status]
+
+  return GitStatus.Good
+
+
+proc gitWorkingCopyStatus(entry: Entry): GitStatus =
+  if not gitInsideWorkTree(entry.path):
+    return
+
+  return if gitWorkTreeDirty(entry.path): GitStatus.WorkingCopyDirty
+         else: GitStatus.WorkingCopyClean
+
+
+proc getFileDetails(path: string, name: string, kind: PathComponent, vsc=true): Entry =
   var
     fullpath = path / name
     entry = Entry()
@@ -143,6 +241,7 @@ proc getFileDetails(path: string, name: string, kind: PathComponent): Entry =
 
   entry.name = name
   entry.path = expandFilename(fullpath)
+  entry.parent = expandFilename(path)
   entry.hidden = false
 
   if entry.name[0] == '.':
@@ -169,6 +268,13 @@ proc getFileDetails(path: string, name: string, kind: PathComponent): Entry =
   entry.mode = stat.st_mode
 
   entry.executable = isExecutable(info.permissions)
+
+  entry.gitInsideWorkTree = gitInsideWorkTree(path)
+
+  if entry.gitInsideWorkTree:
+    entry.gitStatus = gitStatus(entry)
+  elif entry.kind == FileType.Dir:
+    entry.gitStatus = gitWorkingCopyStatus(entry)
 
   return entry
 
@@ -230,6 +336,17 @@ proc formatGroup(entry: Entry): string =
   result = result.colOwner
 
 
+proc formatGit(entry: Entry): string =
+  if entry.kind == FileType.Dir and entry.name == ".git":
+    # special-case: ignore git status for .git directories
+    return " "
+
+  if GitDisplayMap.hasKey(entry.gitStatus):
+    return GitDisplayMap[entry.gitStatus]
+
+  return " "
+
+
 proc formatTime(entry: Entry): string =
   let
     ancient = now() - initInterval(months=6)
@@ -237,12 +354,12 @@ proc formatTime(entry: Entry): string =
     mtime = localtime.toTime.toUnix.float
     age = int(now - mtime)
 
-  result = if mtime < ancient.toTime.toUnix.float: localtime.format(" MMM  yyyy ")
-           else: localtime.format(" MMM HH:mm ")
+  result = if mtime < ancient.toTime.toUnix.float: localtime.format(" MMM  yyyy")
+           else: localtime.format(" MMM HH:mm")
 
-  result = align(localtime.format("d"), 3) & result  
+  result = align(localtime.format("d"), 3) & result
 
-  result = result.colByAge(age)
+  result = result.colorizeByAge(age)
 
 
 proc formatSizeReadable(size: int64): string =
@@ -270,7 +387,7 @@ proc formatSize(entry: Entry, fmt: DisplaySize): string =
   result = if fmt == DisplaySize.human: formatSizeReadable(entry.size.int64)
            else: $entry.size
 
-  result = result.colBySize(entry.size.int)
+  result = result.colorizeBySize(entry.size.int)
 
 
 proc formatName(entry: Entry): string =
@@ -356,12 +473,14 @@ proc tabulate(items: seq[ColArray]): string =
       padLeft(item[4], widths[4] + 1),
       # mtime
       align(item[5], widths[5]),
-      # name
+      # git status
       item[6],
-      # arrow
+      # name
       item[7],
-      # symlink
+      # arrow
       item[8],
+      # symlink
+      item[9],
     ].join(" ").strip)
 
   lines.join("\n")
@@ -378,6 +497,7 @@ proc formatAttributes(entries: seq[Entry], displayopts: DisplayOpts): seq[ColArr
       formatGroup(entry),
       formatSize(entry, displayopts.size),
       formatTime(entry),
+      formatGit(entry),
       formatName(entry),
       formatArrow(entry),
       formatSymlink(entry),
@@ -392,10 +512,14 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
     result.add(getFileDetails(path, "..", PathComponent.pcDir))
 
   for kind, name in walkDir(path):
-    let filename = extractFilename(name)
+    let
+      filename = extractFilename(name)
+      vcs = displayopts.vcs and displayopts.hasGit
+
     if displayopts.all == DisplayAll.default and filename[0] == '.':
       continue
-    result.add(getFileDetails(path, filename, kind))
+
+    result.add(getFileDetails(path, filename, kind, vcs))
 
   return result.sortedByIt(it.name)
 
@@ -415,7 +539,12 @@ proc ll(path: string,
       else: DisplaySize.default
 
   let
-    displayOpts = DisplayOpts(all: optAll, size: optSize, vcs: vcs)
+    displayOpts = DisplayOpts(
+      all: optAll,
+      size: optSize,
+      vcs: vcs,
+      hasGit: gitAvailable(),
+    )
     entries = getFileList(path, displayOpts)
     formatted = formatAttributes(entries, displayOpts)
 

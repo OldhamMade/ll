@@ -1,6 +1,6 @@
 # `ll` - a more informative `ls`, based on [`k`][1]
 
-[![Waffle.io - Columns and their card count](https://badge.waffle.io/03e04bd3c5dd71dd392210b4479adccc.svg?columns=all)](https://waffle.io/OldhamMade/ll)
+[![Waffle.io - Summary](https://badge.waffle.io/03e04bd3c5dd71dd392210b4479adccc.svg?columns=all)](https://waffle.io/OldhamMade/ll)
 
 
 ## Description
@@ -8,10 +8,12 @@
 `ll` is an alternative to [`k`][1], which was created to make directory listings more informative 
 and readable, using colour to add visual weight to important information in the listing.
 
+### Motivation
+
 [`k`][1] only works with [`zsh`][2], and I've found that it can occasionally be a little slow
-when working with large directories or with large git repositories. I've been looking for a project
-in which to use [`nim`][3] for a while now, and this seemed like a great opportunity to make 
-something a little more general-purpose that could be used without the `zsh` dependency.
+when working with large directories or with large git repositories. I was looking for a project
+which would be a good match to learn/use [`nim`][3], and this seemed like a great opportunity to make 
+something a little more general-purpose that could be used without the [`zsh`][2] dependency.
 
 ## Features
 
@@ -23,8 +25,7 @@ Calling `ll` provides a full file listing for a directory, similar to calling `l
 
 Files sizes are graded from green for small (< 1k), to red for huge (> 1mb).
 
-Human readable files sizes can be shown by using the `-h` flag, and using `-H` will display
-file sizes using a power of 1000 instead of 1024.
+Human readable files sizes can be shown by using the `-h` flag.
 
 ### "Rotting" dates
 
@@ -32,13 +33,23 @@ Dates fade with age, so that recently changed files/directories can be easily id
 
 ### Git integration
 
+`ll` provides easy-to-understand information about the `git` status of your files/directories.
+
 #### Git status on entire repos
+
+When listing a directory which contains git repos, `ll` displays the active state of those repos:
+
+![Image demonstrating repository listing](.images/repos.png)
 
 #### Git status on files within a working tree
 
+When listing files/directories within a working tree, `ll` displays the active state of each file, and the overall state for directories:
+
+![Image demonstrating file listing](.images/status.png)
+
 ## Usage
 
-    ll
+    $ ll
     
 That's it. For more options, pass `--help`.
 
@@ -46,18 +57,33 @@ That's it. For more options, pass `--help`.
 
 `ll` is developed using Github issues and [Kanban][4] (via [Waffle][5]). If you would like to
 request a feature or report a bug, please add a new issue [here](https://github.com/OldhamMade/ll/issues)
-and we'll do our best to address them. 
+and we'll do our best to address them. Please note that this is not a funded project and fixes
+will be addressed on a best-effort basis.
 
 Contributions and pull-requests are always welcome, as is constructive feedback around 
 code structure, hints, tips, etc. 
 
-### Status
+## Status
 
 - [x] Full file listing
 - [x] File weight colours
 - [x] "Rotting" dates
-- [ ] Git status on entire repos
-- [ ] Git status on files within a working tree
+- [x] Git status on entire repos
+- [x] Git status on files within a working tree
+
+### Fixes over [`k`][1]
+
+* [`k`][1] has an odd behaviour; given `pwd` is a git-tracked directory, if you `k somedir` where `somedir` 
+contains git-tracked directories but isn't itself tracked, `k` reports as though it is working inside a 
+work-tree. `ll` reports this as one would expect, as though `pwd` is `somedir`.
+
+### Future plans
+
+According to the [`k`][1] source, there are future plans to colorise file permissions. If this happens,
+I plan to bring those changes over. If any other enhancements are added, I hope to port those also.
+
+I'd like to get some additional information into the summary line of the listing; I'm currently reviewing
+what would be most useful.
 
 
 [1]: https://github.com/supercrabtree/k
