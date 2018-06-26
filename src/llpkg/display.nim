@@ -1,7 +1,9 @@
 import future
+import strutils
+import re
 
 type
-  Color {.pure.} = enum
+  Color* {.pure.} = enum
     Black,
     Red,
     Green,
@@ -49,6 +51,10 @@ const
   ]
   sizesDefault* = 196
 
+
+let
+  ColorCode = re"\x1B\[([0-9]{1,2}(;[0-9]+)*)?[mGK]"
+
   
 proc reset(): string {.procvar.} =
   "\e[0m"
@@ -82,7 +88,7 @@ let
   colOwner* = (s: string) => s.fgColor(241)
 
 
-proc colByAge*(s: string, age: int): string {.procvar.} =
+proc colorizeByAge*(s: string, age: int): string {.procvar.} =
   for boundary, color in items(ages):
     if age.int < boundary:
       return s.fgColor(color)
@@ -90,9 +96,31 @@ proc colByAge*(s: string, age: int): string {.procvar.} =
   s.fgColor(agesDefault)
 
 
-proc colBySize*(s: string, size: int): string {.procvar.} =
+proc colorizeBySize*(s: string, size: int): string {.procvar.} =
   for boundary, color in items(sizes):
     if size.int <= boundary:
       return s.fgColor(color)
 
   s.fgColor(sizesDefault)
+
+
+proc clean*(s: string): string =
+  s.replace(ColorCode, "")
+
+
+proc padLeft*(s: string, l=0, c=' '): string =
+  ## add `l` instances of `c`
+  ## to the left side of string `s`
+  let
+    markers = s.findAll(ColorCode)
+  join([markers[0], align(s.clean(), l, c), markers[1]])
+
+
+proc padRight*(s: string, l=0, c=' '): string =
+  ## add `l` instances of `c`
+  ## to the right side of string `s`
+  let
+    markers = s.findAll(ColorCode)
+  join([markers[0], alignLeft(s.clean(), l, c), markers[1]])
+
+

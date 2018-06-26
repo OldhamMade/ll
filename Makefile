@@ -8,13 +8,9 @@ Options:
 endef
 export usage
 
-@PHONY: release build test clean help
+.PHONY: all release build test profile clean help
 
-all:
-	build && test
-
-release:
-	@nimble build --opt:speed -d:release # --passC:-Ofast --threads:off --threadanalysis:off
+all: test
 
 build:
 	@nim c src/ll.nim
@@ -22,8 +18,14 @@ build:
 test:
 	@nimble test
 
+profile:
+	@nimble profile
+
 fulltest:
 	@docker-compose -f .docker-compose.yml up --build
+
+release:
+	@nimble build --verbose --opt:speed -d:release # --passC:-Ofast --threads:off --threadanalysis:off
 
 clean:
 	@find . -type d -iname 'nimcache' | xargs rm -rf
