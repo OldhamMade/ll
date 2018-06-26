@@ -84,9 +84,7 @@ type
   ColArray = array[0..9, string]
 
 
-let
-  now = epochTime()
-
+const
   GitStatusMap = {
     "!!": GitStatus.Ignored,
     " M": GitStatus.TrackedDirty,
@@ -105,6 +103,10 @@ let
     GitStatus.Untracked: "+".fgColor(214),
     GitStatus.Added: "+".fgColor(82),
   }.toTable
+
+
+let
+  now = epochTime()
 
 
 proc isExecutable(perms: set[FilePermission]): bool =
