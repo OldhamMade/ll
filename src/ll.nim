@@ -37,6 +37,7 @@ type
   DisplayOpts = object
     all: DisplayAll
     size: DisplaySize
+    reversed: bool
     vcs: bool
     hasGit: bool
 
@@ -521,13 +522,16 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
 
     result.add(getFileDetails(path, filename, kind, vcs))
 
-  return result.sortedByIt(it.name)
+  result = result.sortedByIt(it.name)
+
+  if displayopts.reversed:
+    result = result.reversed()
 
 
 proc ll(path: string,
         all = false, aall = true,
-        dirs = true, no_dirs = false,
-        human = false, vcs = true): string =
+        human = false, reverse = false,
+        vcs = true): string =
 
   var
     optAll =
@@ -542,6 +546,7 @@ proc ll(path: string,
     displayOpts = DisplayOpts(
       all: optAll,
       size: optSize,
+      reversed: reverse,
       vcs: vcs,
       hasGit: gitAvailable(),
     )
@@ -583,8 +588,7 @@ when isMainModule:
     path=target_path,
     all=args["--all"],
     aall=args["--almost-all"],
-    dirs=args["--directory"],
-    no_dirs=args["--no-directory"],
     human=args["--human"],
-    vcs=not args["--no-vcs"]
+    reverse=args["--reverse"],
+    vcs=not args["--no-vcs"],
   )

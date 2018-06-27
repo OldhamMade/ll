@@ -59,9 +59,9 @@ proc tearDownSuite() =
       ).fgDarkGray()
 
 
-proc getExampleOutput() =
+proc getExampleOutput(reverse=false) =
   echo "\nExample output:"
-  echo ll(tmpdir)
+  echo ll(tmpdir, reverse=reverse)
   echo ""
 
 
@@ -327,3 +327,36 @@ suite "formatting tests":
 
     check:
       padRight(text, 5).clean == "a    "
+
+
+suite "sorting option tests: reverse":
+      
+  setUpBasicListing()
+
+  test "it reverses ordering for -r flag":
+    var
+      entries: seq[string]
+      expected: seq[string]
+      lines = ll(tmpdir, reverse=true).splitLines()
+
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
+
+    entries = @[]
+    expected = @[]
+
+    for i in 1..9:
+      expected.add($i)
+
+    expected = expected.reversed
+
+    for line in lines:
+      var
+        parts = line.split(re"\s+")
+
+      entries.add(parts[^1])
+
+    check entries.len == expected.len
+    check entries == expected
+
+  getExampleOutput(reverse=true)  
+  tearDownSuite()
