@@ -1,7 +1,7 @@
 ll - a better ls
 
 Usage:
-  ll [-a | -A] [-h] [-V] [-r] [<path>]
+  ll [-a | -A] [-h] [-V] [-S] [-r] [<path>]
   ll --help
   ll --version
 
@@ -9,6 +9,7 @@ Options:
   -a --all           list entries starting with .
   -A --almost-all    list all except . and ..
   -h --human         show filesizes in human-readable format
+  -S --size          sort by size (largest first)
   -r --reverse       reverse sort order
   -V --no-vcs        do not get VCS status (faster)
   -v --version       Show version

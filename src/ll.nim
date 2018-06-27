@@ -30,6 +30,10 @@ type
     hidden,
     default
 
+  DisplaySort {.pure.} = enum
+    size,
+    default
+
   DisplaySize {.pure.} = enum
     human,
     default
@@ -37,6 +41,7 @@ type
   DisplayOpts = object
     all: DisplayAll
     size: DisplaySize
+    sortBy: DisplaySort
     reversed: bool
     vcs: bool
     hasGit: bool
@@ -522,7 +527,11 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
 
     result.add(getFileDetails(path, filename, kind, vcs))
 
-  result = result.sortedByIt(it.name)
+  if displayopts.sortBy == DisplaySort.size:
+    result = result.sortedByIt(it.size)  # ascending
+    result = result.reversed()  # descending, by default
+  else:
+    result = result.sortedByIt(it.name)
 
   if displayopts.reversed:
     result = result.reversed()
@@ -530,8 +539,8 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
 
 proc ll(path: string,
         all = false, aall = true,
-        human = false, reverse = false,
-        vcs = true): string =
+        sortBySize = false, sortReverse = false,
+        human = false, vcs = true): string =
 
   var
     optAll =
@@ -541,12 +550,16 @@ proc ll(path: string,
     optSize =
       if human: DisplaySize.human
       else: DisplaySize.default
+    optSort =
+      if sortBySize: DisplaySort.size
+      else: DisplaySort.default
 
   let
     displayOpts = DisplayOpts(
       all: optAll,
       size: optSize,
-      reversed: reverse,
+      sortBy: optSort,
+      reversed: sortReverse,
       vcs: vcs,
       hasGit: gitAvailable(),
     )
@@ -588,7 +601,8 @@ when isMainModule:
     path=target_path,
     all=args["--all"],
     aall=args["--almost-all"],
+    sortBySize=args["--size"],
+    sortReverse=args["--reverse"],
     human=args["--human"],
-    reverse=args["--reverse"],
     vcs=not args["--no-vcs"],
   )

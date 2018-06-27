@@ -50,6 +50,15 @@ proc setUpSymlinkListing() =
     createSymlink(tmpdir / $pair.a, tmpdir / $pair.b)
 
 
+proc setUpSizedListing() =
+  tmpdir = mkdtemp()
+  if tmpdir != nil:
+    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
+
+  for i in 1..9:
+    writeFile(tmpdir / $i, $i.repeat(i))
+
+
 proc tearDownSuite() =
   if tmpdir != nil:
     removeDir(tmpdir)
@@ -59,9 +68,12 @@ proc tearDownSuite() =
       ).fgDarkGray()
 
 
-proc getExampleOutput(reverse=false) =
+proc getExampleOutput(sortReverse=false, sortBySize=false) =
   echo "\nExample output:"
-  echo ll(tmpdir, reverse=reverse)
+  echo ll(tmpdir,
+          sortReverse=sortReverse,
+          sortBySize=sortBySize,
+  )
   echo ""
 
 
@@ -337,7 +349,7 @@ suite "sorting option tests: reverse":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = ll(tmpdir, reverse=true).splitLines()
+      lines = ll(tmpdir, sortReverse=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -358,5 +370,61 @@ suite "sorting option tests: reverse":
     check entries.len == expected.len
     check entries == expected
 
-  getExampleOutput(reverse=true)  
+  getExampleOutput(sortReverse=true)  
+  tearDownSuite()
+
+
+suite "sorting option tests: size":
+      
+  setUpSizedListing()
+
+  test "it sorts by size order, descending":
+    var
+      entries: seq[string]
+      expected: seq[string]
+      lines = ll(tmpdir, sortBySize=true).splitLines()
+
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
+
+    entries = @[]
+    expected = @[]
+
+    for i in 1..9:
+      expected.add($i)
+
+    expected = expected.reversed
+
+    for line in lines:
+      var
+        parts = line.split(re"\s+")
+
+      entries.add(parts[^1])
+
+    check entries.len == expected.len
+    check entries == expected
+
+  test "it sorts by size order, reversed":
+    var
+      entries: seq[string]
+      expected: seq[string]
+      lines = ll(tmpdir, sortBySize=true, sortReverse=true).splitLines()
+
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
+
+    entries = @[]
+    expected = @[]
+
+    for i in 1..9:
+      expected.add($i)
+
+    for line in lines:
+      var
+        parts = line.split(re"\s+")
+
+      entries.add(parts[^1])
+
+    check entries.len == expected.len
+    check entries == expected
+
+  getExampleOutput(sortBySize=true)
   tearDownSuite()
