@@ -11,7 +11,7 @@ bin           = @["ll"]
 
 # Dependencies
 
-requires "nim >= 0.18.0"
+requires "nim >= 0.18.1"
 requires "docopt >= 0.6.5"
 requires "tempfile >= 0.1.5"
 requires "memo >= 0.2.1"
