@@ -47,6 +47,10 @@ When listing files/directories within a working tree, `ll` displays the active s
 
 ![Image demonstrating file listing](.images/status.png)
 
+### Speed
+
+`ll` improves on `k`'s rendering speeds. Currently `ll` is comparable to `ls` display times when using the `--no-vcs` flag. Listing git repositories and trees take a little longer, but even with large listings with many git-tracked entries `ll` is still sub-second.
+
 ## Usage
 
     $ ll
@@ -75,7 +79,8 @@ code structure, hints, tips, etc.
 
 * [`k`][1] has an odd behaviour; given `pwd` is a git-tracked directory, if you `k somedir` where `somedir` 
 contains git-tracked directories but isn't itself tracked, `k` reports as though it is working inside a 
-work-tree. `ll` reports this as one would expect, as though `pwd` is `somedir`.
+work-tree. `ll` reports this as one would expect, as though `pwd` is `somedir`. **UPDATE:** This has now
+[been fixed](https://github.com/supercrabtree/k/issues/47).
 
 ### Future plans
 

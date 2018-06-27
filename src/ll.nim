@@ -466,9 +466,9 @@ proc tabulate(items: seq[ColArray]): string =
       # linkCount
       align(item[1], widths[1] + 1),
       # user
-      alignLeft(item[2], widths[2]),
+      padLeft(item[2], widths[2]),
       # group
-      alignLeft(item[3], widths[3]),
+      padLeft(item[3], widths[3]),
       # size
       padLeft(item[4], widths[4] + 1),
       # mtime
