@@ -449,7 +449,8 @@ proc formatSummary(entries: seq[Entry]): string =
 
 
 proc getWidth(items: seq[ColArray], offset = 0): int =
-  max(map(items, (i) => i[offset].clean.len))
+  return if items.len > 0: max(map(items, (i) => i[offset].clean.len))
+         else: 0
 
 
 proc getWidths(items: seq[ColArray]): seq[int] =
