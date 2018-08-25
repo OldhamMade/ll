@@ -74,6 +74,13 @@ code structure, hints, tips, etc.
 - [x] "Rotting" dates
 - [x] Git status on entire repos
 - [x] Git status on files within a working tree
+- [x] Sort output by size
+- [ ] Sort output by modified time (requires Nim 0.19)
+- [x] Sort output in reversed order
+- [ ] Options for filtering directories
+- [ ] Installable via Homebrew
+- [ ] Support light themes
+- [ ] Support globs
 
 ### Fixes over [`k`][1]
 
