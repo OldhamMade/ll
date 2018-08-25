@@ -55,7 +55,7 @@ When listing files/directories within a working tree, `ll` displays the active s
 
     $ ll
     
-That's it. For more options, pass `--help`.
+That's it. For more options, pass `--help`. Alternatively, read the [usage](src/usage.txt) file.
 
 ## Development
 
@@ -87,7 +87,7 @@ work-tree. `ll` reports this as one would expect, as though `pwd` is `somedir`. 
 According to the [`k`][1] source, there are future plans to colorise file permissions. If this happens,
 I plan to bring those changes over. If any other enhancements are added, I hope to port those also.
 
-I'd like to get some additional information into the summary line of the listing; I'm currently reviewing
+I'd like to display some additional information in the summary line of the listing; I'm currently reviewing
 what would be most useful.
 
 
