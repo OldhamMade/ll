@@ -51,6 +51,21 @@ When listing files/directories within a working tree, `ll` displays the active s
 
 `ll` improves on `k`'s rendering speeds. Currently `ll` is comparable to `ls` display times when using the `--no-vcs` flag. Listing git repositories and trees take a little longer, but even with large listings with many git-tracked entries `ll` is still sub-second.
 
+## Installation
+
+Binary distributions are planned, but for now it's possible to build and install using the following instructions.
+
+### Requirements
+
+- [Nim][3], minimum v0.18.0
+- `make`
+
+### Steps
+
+Firstly install [Nim][3]. You'll need to install version 0.18 as a minimum. I personally use [`asdf`][6] to manage Nim versions on my machine. With `asdf` installed, this is as simple as calling `asdf install nim v0.18.0`.
+
+Once Nim is installed, clone this repository. From within the cloned directory, call `make release` which will build `ll` into the working directory. Copy the resulting `ll` binary to a location in your `$PATH` (eg. `/usr/local/bin`).
+
 ## Usage
 
     $ ll
@@ -103,3 +118,4 @@ what would be most useful.
 [3]: https://nim-lang.org
 [4]: https://en.wikipedia.org/wiki/Kanban
 [5]: https://waffle.io
+[6]: https://github.com/asdf-vm/asdf
