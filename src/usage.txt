@@ -1,13 +1,15 @@
 ll - a better ls
 
 Usage:
-  ll [-a | -A] [-h] [-V] [-S | -t] [-r] [<path>]
+  ll [-a | -A] [-d | -n] [-h] [-V] [-S | -t] [-r] [<path>]
   ll --help
   ll --version
 
 Options:
   -a --all           list entries starting with .
   -A --almost-all    list all except . and ..
+  -d --directory     list only directories
+  -n --no-directory  do not list directories
   -h --human         show filesizes in human-readable format
   -S --size          sort by size (largest first) [default: false]
   -t --mtime         sort by modified time (most recently modified first) [default: false]

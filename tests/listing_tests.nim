@@ -39,6 +39,18 @@ proc setUpDirectoryListing() =
     createDir(tmpdir / $i)
 
 
+proc setUpMixedListing() =
+  tmpdir = mkdtemp()
+  if tmpdir != nil:
+    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
+
+  for i in 1..4:
+    createDir(tmpdir / $i)
+
+  for i in 5..9:
+    writeFile(tmpdir / $i, $i)
+
+    
 proc setUpSymlinkListing() =
   tmpdir = mkdtemp()
   if tmpdir != nil:
@@ -69,13 +81,14 @@ proc tearDownSuite() =
       ).fgDarkGray()
 
 
-proc getExampleOutput(sortReverse=false, sortBySize=false, sortByMtime=false) =
+proc getExampleOutput(sortReverse=false, sortBySize=false, sortByMtime=false, dirsOnly=false) =
   echo "\nExample output:"
   echo ll(
     tmpdir,
     sortReverse=sortReverse,
     sortBySize=sortBySize,
     sortByMtime=sortByMtime,
+    dirsOnly=dirsOnly,
   )
   echo ""
 
@@ -297,7 +310,7 @@ suite "formatting tests":
       ]
 
     check:
-      getWidth(lines) == 5
+      calcWidth(lines) == 5
 
   test "it calculates widths correctly for colorized values":
     let
@@ -327,7 +340,7 @@ suite "formatting tests":
       ]
 
     check:
-      getWidth(lines) == 5
+      calcWidth(lines) == 5
 
   test "it should left-pad colorized text":
     let
@@ -432,7 +445,7 @@ suite "sorting option tests: size":
   getExampleOutput(sortBySize=true)
   tearDownSuite()
 
-
+  
 suite "sorting option tests: modified time":
       
   setUpBasicListing()
@@ -486,4 +499,40 @@ suite "sorting option tests: modified time":
     check entries == expected
 
   getExampleOutput(sortByMtime=true)
+  tearDownSuite()
+
+
+suite "filter option tests: directories":
+
+  setUpMixedListing()
+
+  test "it shows only directories":
+    var
+      lines = ll(tmpdir, dirsOnly=true).splitLines()
+      entries: seq[string]
+
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
+
+    entries = @[]
+    
+    for line in lines:
+      entries.add(line)
+
+    check entries.len == 4
+
+  test "it shows only files":
+    var
+      lines = ll(tmpdir, filesOnly=true).splitLines()
+      entries: seq[string]
+
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
+
+    entries = @[]
+    
+    for line in lines:
+      entries.add(line)
+
+    check entries.len == 5
+
+  getExampleOutput(dirsOnly=true)
   tearDownSuite()
