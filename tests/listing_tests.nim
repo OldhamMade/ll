@@ -3,11 +3,11 @@
 include ll
 
 import algorithm
-import future
 import os
 import re
 import sequtils
 import strutils
+import sugar
 import unittest
 
 import tempfile
@@ -69,11 +69,13 @@ proc tearDownSuite() =
       ).fgDarkGray()
 
 
-proc getExampleOutput(sortReverse=false, sortBySize=false) =
+proc getExampleOutput(sortReverse=false, sortBySize=false, sortByMtime=false) =
   echo "\nExample output:"
-  echo ll(tmpdir,
-          sortReverse=sortReverse,
-          sortBySize=sortBySize,
+  echo ll(
+    tmpdir,
+    sortReverse=sortReverse,
+    sortBySize=sortBySize,
+    sortByMtime=sortByMtime,
   )
   echo ""
 
@@ -439,7 +441,7 @@ suite "sorting option tests: modified time":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = ll(tmpdir, sortBySize=true).splitLines()
+      lines = ll(tmpdir, sortByMtime=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -460,28 +462,28 @@ suite "sorting option tests: modified time":
     check entries.len == expected.len
     check entries == expected
 
-  # test "it sorts by size order, reversed":
-  #   var
-  #     entries: seq[string]
-  #     expected: seq[string]
-  #     lines = ll(tmpdir, sortBySize=true, sortReverse=true).splitLines()
+  test "it sorts by size order, reversed":
+    var
+      entries: seq[string]
+      expected: seq[string]
+      lines = ll(tmpdir, sortByMtime=true, sortReverse=true).splitLines()
 
-  #   lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-  #   entries = @[]
-  #   expected = @[]
+    entries = @[]
+    expected = @[]
 
-  #   for i in 1..9:
-  #     expected.add($i)
+    for i in 1..9:
+      expected.add($i)
 
-  #   for line in lines:
-  #     var
-  #       parts = line.split(re"\s+")
+    for line in lines:
+      var
+        parts = line.split(re"\s+")
 
-  #     entries.add(parts[^1])
+      entries.add(parts[^1])
 
-  #   check entries.len == expected.len
-  #   check entries == expected
+    check entries.len == expected.len
+    check entries == expected
 
-  getExampleOutput(sortBySize=true)
-  # tearDownSuite()
+  getExampleOutput(sortByMtime=true)
+  tearDownSuite()

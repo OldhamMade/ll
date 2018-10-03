@@ -1,5 +1,4 @@
 import algorithm
-import future
 import memo
 import os
 import osproc
@@ -7,6 +6,7 @@ import parseutils
 import posix
 import sequtils
 import strutils
+import sugar
 import tables
 import times
 import typeinfo
@@ -78,6 +78,7 @@ type
     linkCount: BiggestInt
     lastAccessTime: times.Time
     lastWriteTime: times.Time
+    lastWriteTimeNanosec: int
     creationTime: times.Time
     blocks: int
     owner: tuple[group: Gid, user: Uid]
@@ -115,6 +116,24 @@ const
 let
   now = epochTime()
 
+
+proc cmpModifiedTime(a, b: Entry): int =
+  # replicates the sort function from `ls`
+
+  if a.lastWriteTime > b.lastWriteTime:
+    return 1
+    
+  if a.lastWriteTime < b.lastWriteTime:
+    return -1
+      
+  if a.lastWriteTimeNanosec > b.lastWriteTimeNanosec:
+    return 1
+        
+  if a.lastWriteTimeNanosec < b.lastWriteTimeNanosec:
+    return -1
+
+  cmp[string](a.name, b.name)
+  
 
 proc isExecutable(perms: set[FilePermission]): bool =
   {FilePermission.fpUserExec, FilePermission.fpGroupExec, FilePermission.fpOthersExec} - perms == {}
@@ -245,6 +264,10 @@ proc getFileDetails(path: string, name: string, kind: PathComponent, vsc=true): 
     fullpath = path / name
     entry = Entry()
     info = getFileInfo(fullpath, false)
+    stat: Stat
+      
+  if lstat(fullpath, stat) < 0:
+    raiseOSError(osLastError())
 
   entry.name = name
   entry.path = expandFilename(fullpath)
@@ -260,21 +283,16 @@ proc getFileDetails(path: string, name: string, kind: PathComponent, vsc=true): 
   entry.linkCount = info.linkCount
   entry.lastAccessTime = info.lastAccessTime
   entry.lastWriteTime = info.lastWriteTime
+  entry.lastWriteTimeNanosec = cast[int](stat.st_mtim.tv_nsec)
   entry.creationTime = info.creationTime
-
-  if symlinkExists(fullpath):
-    entry.symlink = expandSymlink(fullpath)
-
-  var stat: Stat
-  if lstat(fullpath, stat) < 0:
-    raiseOSError(osLastError())
-
   entry.kind = getKind(stat.st_mode)
   entry.owner = (group: stat.st_gid, user: stat.st_uid)
   entry.blocks = stat.st_blocks
   entry.mode = stat.st_mode
-
   entry.executable = isExecutable(info.permissions)
+
+  if symlinkExists(fullpath):
+    entry.symlink = expandSymlink(fullpath)
 
   entry.gitInsideWorkTree = gitInsideWorkTree(path)
 
@@ -356,7 +374,7 @@ proc formatGit(entry: Entry): string =
 
 proc formatTime(entry: Entry): string =
   let
-    ancient = now() - initInterval(months=6)
+    ancient = now() - initTimeInterval(months=6)
     localtime = inZone(entry.lastWriteTime, local())
     mtime = localtime.toTime.toUnix.float
     age = int(now - mtime)
@@ -534,7 +552,8 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
     result = result.reversed()  # descending, by default
 
   elif displayopts.sortBy == DisplaySort.mtime:
-    result = result.sortedByIt(it.lastWriteTime.toSeconds)  # ascending
+    # result = result.sortedByIt(it.lastWriteTime)  # ascending
+    result = result.sorted(cmpModifiedTime)  # ascending
     result = result.reversed()  # descending, by default
     
   else:
@@ -575,8 +594,8 @@ proc ll(path: string,
       vcs: vcs,
       hasGit: gitAvailable(),
     )
-    entries = getFileList(path, displayOpts)
-    formatted = formatAttributes(entries, displayOpts)
+    entries = getFileList(path, displayopts)
+    formatted = formatattributes(entries, displayopts)
 
   result = formatSummary(entries) & "\n"
   result &= tabulate(formatted)

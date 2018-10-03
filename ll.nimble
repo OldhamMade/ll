@@ -23,6 +23,7 @@ task test, "Runs the test suite":
   --linedir: on
   --stacktrace: on
   --linetrace: on
+  --nilseqs: on
   --debuginfo
   --path:"src"
   --verbose

@@ -9,8 +9,8 @@ Options:
   -a --all           list entries starting with .
   -A --almost-all    list all except . and ..
   -h --human         show filesizes in human-readable format
-  -S --size          sort by size (largest first)
-  -t --mtime         sort by modified time (most recently modified first)
+  -S --size          sort by size (largest first) [default: false]
+  -t --mtime         sort by modified time (most recently modified first) [default: false]
   -r --reverse       reverse sort order
   -V --no-vcs        do not get VCS status (faster)
   -v --version       Show version
