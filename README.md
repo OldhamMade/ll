@@ -57,7 +57,7 @@ Binary distributions are planned, but for now it's possible to build and install
 
 ### Requirements
 
-- [Nim][3], minimum v0.18.0
+- [Nim][3], minimum v0.19.0
 - `make`
 
 ### Steps

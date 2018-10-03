@@ -462,7 +462,6 @@ suite "sorting option tests: modified time":
     check entries.len == expected.len
     check entries == expected
 
-<<<<<<< HEAD
   test "it sorts by size order, reversed":
     var
       entries: seq[string]

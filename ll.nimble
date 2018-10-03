@@ -16,7 +16,6 @@ requires "docopt >= 0.6.5"
 requires "tempfile >= 0.1.5"
 requires "memo >= 0.2.1"
 
-# Tests
 
 task test, "Runs the test suite":
   --hints: off
@@ -36,6 +35,7 @@ task profile, "Build with the profiler enabled":
   --profiler:on
   --stacktrace: on
   --linetrace: on
+  --nilseqs: on
   --debuginfo
   --path:"src"
   --verbose
