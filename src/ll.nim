@@ -122,18 +122,18 @@ proc cmpModifiedTime(a, b: Entry): int =
 
   if a.lastWriteTime > b.lastWriteTime:
     return 1
-    
+
   if a.lastWriteTime < b.lastWriteTime:
     return -1
-      
+
   if a.lastWriteTimeNanosec > b.lastWriteTimeNanosec:
     return 1
-        
+
   if a.lastWriteTimeNanosec < b.lastWriteTimeNanosec:
     return -1
 
   cmp[string](a.name, b.name)
-  
+
 
 proc isExecutable(perms: set[FilePermission]): bool =
   {FilePermission.fpUserExec, FilePermission.fpGroupExec, FilePermission.fpOthersExec} - perms == {}
@@ -265,7 +265,7 @@ proc getFileDetails(path: string, name: string, kind: PathComponent, vsc=true): 
     entry = Entry()
     info = getFileInfo(fullpath, false)
     stat: Stat
-      
+
   if lstat(fullpath, stat) < 0:
     raiseOSError(osLastError())
 
@@ -552,10 +552,9 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
     result = result.reversed()  # descending, by default
 
   elif displayopts.sortBy == DisplaySort.mtime:
-    # result = result.sortedByIt(it.lastWriteTime)  # ascending
     result = result.sorted(cmpModifiedTime)  # ascending
     result = result.reversed()  # descending, by default
-    
+
   else:
     result = result.sortedByIt(it.name)
 
