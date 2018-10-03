@@ -7,4 +7,4 @@ asdf global nim v0.19.0
 
 echo "Starting test run"
 export NIM_LIB_PREFIX=$HOME/.asdf/installs/nim/v0.19.0
-nimble test -y
+nimble build -y --nilseqs:on && nimble test -y

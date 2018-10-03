@@ -57,7 +57,7 @@ Binary distributions are planned, but for now it's possible to build and install
 
 ### Requirements
 
-- [Nim][3], minimum v0.18.0
+- [Nim][3], minimum v0.19.0
 - `make`
 
 ### Steps
@@ -90,7 +90,7 @@ code structure, hints, tips, etc.
 - [x] Git status on entire repos
 - [x] Git status on files within a working tree
 - [x] Sort output by size
-- [ ] Sort output by modified time (requires Nim 0.19)
+- [x] Sort output by modified time
 - [x] Sort output in reversed order
 - [ ] Options for filtering directories
 - [ ] Installable via Homebrew
