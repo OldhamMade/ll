@@ -30,6 +30,11 @@ type
     hidden,
     default
 
+  DisplayDirs {.pure.} = enum
+    dirsOnly,
+    filesOnly,
+    default
+
   DisplaySort {.pure.} = enum
     size,
     mtime,
@@ -41,6 +46,7 @@ type
 
   DisplayOpts = object
     all: DisplayAll
+    dirs: DisplayDirs
     size: DisplaySize
     sortBy: DisplaySort
     reversed: bool
@@ -467,21 +473,39 @@ proc formatSummary(entries: seq[Entry]): string =
   "total $#".format(blocks)
 
 
-proc getWidth(items: seq[ColArray], offset = 0): int =
+proc formatAttributes(entries: seq[Entry], displayopts: DisplayOpts): seq[ColArray] =
+  result = @[]
+
+  for entry in entries:
+    result.add([
+      formatKind(entry) & formatPermissions(entry),
+      formatLinks(entry),
+      formatUser(entry),
+      formatGroup(entry),
+      formatSize(entry, displayopts.size),
+      formatTime(entry),
+      formatGit(entry),
+      formatName(entry),
+      formatArrow(entry),
+      formatSymlink(entry),
+    ])
+
+
+proc calcWidth(items: seq[ColArray], offset = 0): int =
   return if items.len > 0: max(map(items, (i) => i[offset].clean.len))
          else: 0
 
 
-proc getWidths(items: seq[ColArray]): seq[int] =
+proc calcWidths(items: seq[ColArray]): seq[int] =
   result = @[]
   for i in 0..<items[0].len:
-    result.add(getWidth(items, i))
+    result.add(calcWidth(items, i))
 
 
 proc tabulate(items: seq[ColArray]): string =
   var
     lines: seq[string]
-    widths = getWidths(items)
+    widths = calcWidths(items)
 
   lines = @[]
 
@@ -512,24 +536,6 @@ proc tabulate(items: seq[ColArray]): string =
   lines.join("\n")
 
 
-proc formatAttributes(entries: seq[Entry], displayopts: DisplayOpts): seq[ColArray] =
-  result = @[]
-
-  for entry in entries:
-    result.add([
-      formatKind(entry) & formatPermissions(entry),
-      formatLinks(entry),
-      formatUser(entry),
-      formatGroup(entry),
-      formatSize(entry, displayopts.size),
-      formatTime(entry),
-      formatGit(entry),
-      formatName(entry),
-      formatArrow(entry),
-      formatSymlink(entry),
-    ])
-
-
 proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
   result = @[]
 
@@ -543,6 +549,12 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
       vcs = displayopts.vcs and displayopts.hasGit
 
     if displayopts.all == DisplayAll.default and filename[0] == '.':
+      continue
+
+    if displayopts.dirs == DisplayDirs.dirsOnly and kind != PathComponent.pcDir:
+      continue
+
+    if displayopts.dirs == DisplayDirs.filesOnly and kind == PathComponent.pcDir:
       continue
 
     result.add(getFileDetails(path, filename, kind, vcs))
@@ -565,6 +577,8 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
 proc ll(path: string,
         all = false,
         aall = true,
+        dirsOnly = false,
+        filesOnly = false,
         sortBySize = false,
         sortByMtime = false,
         sortReverse = false,
@@ -576,6 +590,10 @@ proc ll(path: string,
       if all: DisplayAll.all
       elif aall: DisplayAll.hidden
       else: DisplayAll.default
+    optDirs =
+      if dirsOnly: DisplayDirs.dirsOnly
+      elif filesOnly: DisplayDirs.filesOnly
+      else: DisplayDirs.default
     optSize =
       if human: DisplaySize.human
       else: DisplaySize.default
@@ -587,6 +605,7 @@ proc ll(path: string,
   let
     displayOpts = DisplayOpts(
       all: optAll,
+      dirs: optDirs,
       size: optSize,
       sortBy: optSort,
       reversed: sortReverse,
@@ -631,6 +650,8 @@ when isMainModule:
     path=target_path,
     all=args["--all"],
     aall=args["--almost-all"],
+    dirsOnly=args["--directory"],
+    filesOnly=args["--no-directory"],
     sortBySize=args["--size"],
     sortByMtime=args["--mtime"],
     sortReverse=args["--reverse"],

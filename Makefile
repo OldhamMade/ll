@@ -4,6 +4,7 @@ Options:
   test		run test suite
   fulltest	run test suite within a local Travis-CI container
   release	release build, optimised for speed
+  install	build a release version then mv to /usr/local/bin
   clean		remove build artefacts
 endef
 export usage
@@ -26,6 +27,9 @@ fulltest:
 
 release:
 	@nimble build --nilseqs:on --verbose --opt:speed -d:release # --passC:-Ofast --threads:off --threadanalysis:off
+
+install: release
+	@mv ./ll /usr/local/bin/ll
 
 clean:
 	@find . -type d -iname 'nimcache' | xargs rm -rf
