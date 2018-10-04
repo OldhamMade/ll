@@ -62,7 +62,7 @@ Binary distributions are planned, but for now it's possible to build and install
 
 ### Steps
 
-Firstly install [Nim][3]. You'll need to install version 0.18 as a minimum. I personally use [`asdf`][6] to manage Nim versions on my machine. With `asdf` installed, this is as simple as calling `asdf install nim v0.18.0`.
+Firstly install [Nim][3]. You'll need to install version 0.19 as a minimum. I personally use [`asdf`][6] to manage Nim versions on my machine. With `asdf` installed, this is as simple as calling `asdf install nim v0.19.0`.
 
 Once Nim is installed, clone this repository. From within the cloned directory, call `make release` which will build `ll` into the working directory. Copy the resulting `ll` binary to a location in your `$PATH` (eg. `/usr/local/bin`).
 
