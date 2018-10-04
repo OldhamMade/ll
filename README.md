@@ -92,7 +92,7 @@ code structure, hints, tips, etc.
 - [x] Sort output by size
 - [x] Sort output by modified time
 - [x] Sort output in reversed order
-- [ ] Options for filtering directories
+- [x] Options for filtering directories
 - [ ] Installable via Homebrew
 - [ ] Support light themes
 - [ ] Support globs
