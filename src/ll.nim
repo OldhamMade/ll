@@ -1,5 +1,4 @@
 import algorithm
-import future
 import memo
 import os
 import osproc
@@ -7,6 +6,7 @@ import parseutils
 import posix
 import sequtils
 import strutils
+import sugar
 import tables
 import times
 import typeinfo
@@ -32,6 +32,7 @@ type
 
   DisplaySort {.pure.} = enum
     size,
+    mtime,
     default
 
   DisplaySize {.pure.} = enum
@@ -77,6 +78,7 @@ type
     linkCount: BiggestInt
     lastAccessTime: times.Time
     lastWriteTime: times.Time
+    lastWriteTimeNanosec: int
     creationTime: times.Time
     blocks: int
     owner: tuple[group: Gid, user: Uid]
@@ -113,6 +115,24 @@ const
 
 let
   now = epochTime()
+
+
+proc cmpModifiedTime(a, b: Entry): int =
+  # replicates the sort function from `ls`
+
+  if a.lastWriteTime > b.lastWriteTime:
+    return 1
+
+  if a.lastWriteTime < b.lastWriteTime:
+    return -1
+
+  if a.lastWriteTimeNanosec > b.lastWriteTimeNanosec:
+    return 1
+
+  if a.lastWriteTimeNanosec < b.lastWriteTimeNanosec:
+    return -1
+
+  cmp[string](a.name, b.name)
 
 
 proc isExecutable(perms: set[FilePermission]): bool =
@@ -244,6 +264,10 @@ proc getFileDetails(path: string, name: string, kind: PathComponent, vsc=true): 
     fullpath = path / name
     entry = Entry()
     info = getFileInfo(fullpath, false)
+    stat: Stat
+
+  if lstat(fullpath, stat) < 0:
+    raiseOSError(osLastError())
 
   entry.name = name
   entry.path = expandFilename(fullpath)
@@ -259,21 +283,16 @@ proc getFileDetails(path: string, name: string, kind: PathComponent, vsc=true): 
   entry.linkCount = info.linkCount
   entry.lastAccessTime = info.lastAccessTime
   entry.lastWriteTime = info.lastWriteTime
+  entry.lastWriteTimeNanosec = cast[int](stat.st_mtim.tv_nsec)
   entry.creationTime = info.creationTime
-
-  if symlinkExists(fullpath):
-    entry.symlink = expandSymlink(fullpath)
-
-  var stat: Stat
-  if lstat(fullpath, stat) < 0:
-    raiseOSError(osLastError())
-
   entry.kind = getKind(stat.st_mode)
   entry.owner = (group: stat.st_gid, user: stat.st_uid)
   entry.blocks = stat.st_blocks
   entry.mode = stat.st_mode
-
   entry.executable = isExecutable(info.permissions)
+
+  if symlinkExists(fullpath):
+    entry.symlink = expandSymlink(fullpath)
 
   entry.gitInsideWorkTree = gitInsideWorkTree(path)
 
@@ -355,7 +374,7 @@ proc formatGit(entry: Entry): string =
 
 proc formatTime(entry: Entry): string =
   let
-    ancient = now() - initInterval(months=6)
+    ancient = now() - initTimeInterval(months=6)
     localtime = inZone(entry.lastWriteTime, local())
     mtime = localtime.toTime.toUnix.float
     age = int(now - mtime)
@@ -531,6 +550,11 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
   if displayopts.sortBy == DisplaySort.size:
     result = result.sortedByIt(it.size)  # ascending
     result = result.reversed()  # descending, by default
+
+  elif displayopts.sortBy == DisplaySort.mtime:
+    result = result.sorted(cmpModifiedTime)  # ascending
+    result = result.reversed()  # descending, by default
+
   else:
     result = result.sortedByIt(it.name)
 
@@ -539,9 +563,13 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
 
 
 proc ll(path: string,
-        all = false, aall = true,
-        sortBySize = false, sortReverse = false,
-        human = false, vcs = true): string =
+        all = false,
+        aall = true,
+        sortBySize = false,
+        sortByMtime = false,
+        sortReverse = false,
+        human = false,
+        vcs = true): string =
 
   var
     optAll =
@@ -553,6 +581,7 @@ proc ll(path: string,
       else: DisplaySize.default
     optSort =
       if sortBySize: DisplaySort.size
+      elif sortByMtime: DisplaySort.mtime
       else: DisplaySort.default
 
   let
@@ -564,8 +593,8 @@ proc ll(path: string,
       vcs: vcs,
       hasGit: gitAvailable(),
     )
-    entries = getFileList(path, displayOpts)
-    formatted = formatAttributes(entries, displayOpts)
+    entries = getFileList(path, displayopts)
+    formatted = formatattributes(entries, displayopts)
 
   result = formatSummary(entries) & "\n"
   result &= tabulate(formatted)
@@ -603,6 +632,7 @@ when isMainModule:
     all=args["--all"],
     aall=args["--almost-all"],
     sortBySize=args["--size"],
+    sortByMtime=args["--mtime"],
     sortReverse=args["--reverse"],
     human=args["--human"],
     vcs=not args["--no-vcs"],

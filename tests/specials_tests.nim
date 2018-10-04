@@ -2,7 +2,7 @@
 # anything to be used by other libs/packages
 include ll
 
-import future
+import sugar
 import unittest
 
 import tempfile

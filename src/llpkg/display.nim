@@ -1,6 +1,6 @@
-import future
-import strutils
 import re
+import strutils
+import sugar
 
 type
   Color* {.pure.} = enum

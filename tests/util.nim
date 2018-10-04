@@ -1,5 +1,5 @@
-import future
 import re
+import sugar
 
 
 proc isSummaryLine*(line: string): bool =

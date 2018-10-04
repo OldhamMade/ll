@@ -25,7 +25,7 @@ fulltest:
 	@docker-compose -f .docker-compose.yml up --build
 
 release:
-	@nimble build --verbose --opt:speed -d:release # --passC:-Ofast --threads:off --threadanalysis:off
+	@nimble build --nilseqs:on --verbose --opt:speed -d:release # --passC:-Ofast --threads:off --threadanalysis:off
 
 clean:
 	@find . -type d -iname 'nimcache' | xargs rm -rf

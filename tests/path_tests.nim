@@ -2,9 +2,9 @@
 # anything to be used by other libs/packages
 include ll
 
-import future
-import strutils
 import os
+import strutils
+import sugar
 import unittest
 
 
