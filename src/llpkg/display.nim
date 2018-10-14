@@ -104,6 +104,14 @@ proc colorizeBySize*(s: string, size: int): string {.procvar.} =
   s.fgColor(sizesDefault)
 
 
+proc colorizeSymlink*(s: string): string {.procvar.} =
+  s.fgColor(Color.DarkGrey)
+
+
+proc colorizeBrokenSymlink*(s: string): string {.procvar.} =
+  s.bgColor(Color.Red).fgColor(Color.Black)
+
+
 proc clean*(s: string): string =
   s.replace(ColorCode, "")
 

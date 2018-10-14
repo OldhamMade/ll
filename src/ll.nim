@@ -20,7 +20,7 @@ import llpkg/display
 const
   Usage = staticRead("usage.txt")
   AppName = "ll"
-  AppVersion = "0.1.0"
+  AppVersion = "0.1.1"
   AppVersionFull = "$1, version $2".format(AppName, AppVersion)
 
 
@@ -89,6 +89,7 @@ type
     blocks: int
     owner: tuple[group: Gid, user: Uid]
     symlink: string
+    symlinkBroken: bool
     executable: bool
     mode: Mode
     hidden: bool
@@ -275,8 +276,17 @@ proc getFileDetails(path: string, name: string, kind: PathComponent, vsc=true): 
   if lstat(fullpath, stat) < 0:
     raiseOSError(osLastError())
 
+  if symlinkExists(fullpath):
+    entry.symlink = expandSymlink(fullpath)
+    entry.symlinkBroken = false
+
+  try:
+    entry.path = expandFilename(fullpath)
+  except OSError:
+    entry.path = fullpath
+    entry.symlinkBroken = true
+
   entry.name = name
-  entry.path = expandFilename(fullpath)
   entry.parent = expandFilename(path)
   entry.hidden = false
 
@@ -296,9 +306,6 @@ proc getFileDetails(path: string, name: string, kind: PathComponent, vsc=true): 
   entry.blocks = stat.st_blocks
   entry.mode = stat.st_mode
   entry.executable = isExecutable(info.permissions)
-
-  if symlinkExists(fullpath):
-    entry.symlink = expandSymlink(fullpath)
 
   entry.gitInsideWorkTree = gitInsideWorkTree(path)
 
@@ -454,13 +461,23 @@ proc formatName(entry: Entry): string =
 
 
 proc formatArrow(entry: Entry): string =
-  return if entry.symlink != nil: "->"
-         else: ""
+  if entry.symlink == nil:
+    return ""
+
+  if entry.symlinkBroken:
+    return "~>".colorizeSymlink()
+
+  "->".colorizeSymlink()
 
 
 proc formatSymlink(entry: Entry): string =
-  return if entry.symlink != nil: entry.symlink
-         else: ""
+  if entry.symlink == nil:
+    return ""
+
+  if entry.symlinkBroken:
+    return entry.symlink.colorizeBrokenSymlink()
+
+  entry.symlink.colorizeSymlink()
 
 
 proc formatSummary(entries: seq[Entry]): string =
@@ -624,6 +641,8 @@ proc getTargetPath(path: string): string =
 
   case path
   of "":
+    path = getCurrentDir()
+  of ".":
     path = getCurrentDir()
   of "~":
     path = getHomeDir()

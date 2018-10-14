@@ -17,6 +17,17 @@ requires "tempfile >= 0.1.5"
 requires "memo >= 0.2.1"
 
 
+task debug, "Build with debug enabled":
+  --hints: on
+  --linedir: on
+  --stacktrace: on
+  --linetrace: on
+  --nilseqs: on
+  --debuginfo
+  --path:"src"
+  --verbose
+  setCommand "c", "src/ll.nim"
+
 task test, "Runs the test suite":
   --hints: off
   --linedir: on
@@ -40,4 +51,4 @@ task profile, "Build with the profiler enabled":
   --path:"src"
   --verbose
   --run
-  setCommand "c", "src/ll.nim"
+  setCommand "c", "tests/all.nim"

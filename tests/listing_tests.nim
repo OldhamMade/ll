@@ -62,6 +62,8 @@ proc setUpSymlinkListing() =
   for pair in zip(toSeq(1..4), toSeq(5..9)):
     createSymlink(tmpdir / $pair.a, tmpdir / $pair.b)
 
+  removeFile(tmpdir / "1")
+
 
 proc setUpSizedListing() =
   tmpdir = mkdtemp()
@@ -244,7 +246,7 @@ suite "symlink listing tests":
     for line in lines:
       entries.add(line)
 
-    check entries.len == 8
+    check entries.len == 7
 
   test "it identifies symlinks":
     var
@@ -271,10 +273,25 @@ suite "symlink listing tests":
     entries = @[]
     
     for line in lines:
-      if " -> " in line:
+      if ">" in line:
          entries.add(line)
 
     check entries.len == 4
+    
+  test "it displays broken symlinks":
+    var
+      lines = ll(tmpdir).splitLines()
+      entries: seq[string]
+
+    lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
+
+    entries = @[]
+    
+    for line in lines:
+      if "~>" in line:
+         entries.add(line)
+
+    check entries.len == 1
     
   getExampleOutput()
   tearDownSuite()

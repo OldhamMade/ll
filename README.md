@@ -31,6 +31,10 @@ Human readable files sizes can be shown by using the `-h` flag.
 
 Dates fade with age, so that recently changed files/directories can be easily identified.
 
+### Broken Symlinks
+
+Broken symlinks are identified by a `~>` (tilde-arrow) leading symbol and differing colors.
+
 ### Git integration
 
 `ll` provides easy-to-understand information about the `git` status of your files/directories.
@@ -87,6 +91,7 @@ code structure, hints, tips, etc.
 - [x] Full file listing
 - [x] File weight colours
 - [x] "Rotting" dates
+- [x] Display symlink status
 - [x] Git status on entire repos
 - [x] Git status on files within a working tree
 - [x] Sort output by size
