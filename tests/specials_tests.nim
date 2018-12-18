@@ -11,12 +11,12 @@ import util
 
 
 var
-  tmpdir: string = nil
+  tmpdir: string
 
 
 proc setUpSetUIDListing() =
   tmpdir = mkdtemp()
-  if tmpdir != nil:
+  if tmpdir.len != 0:
     echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..3:
@@ -26,7 +26,7 @@ proc setUpSetUIDListing() =
 
 proc setUpSetGIDListing() =
   tmpdir = mkdtemp()
-  if tmpdir != nil:
+  if tmpdir.len != 0:
     echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..3:
@@ -35,7 +35,7 @@ proc setUpSetGIDListing() =
 
 
 proc tearDownSuite() =
-  if tmpdir != nil:
+  if tmpdir.len != 0:
     removeDir(tmpdir)
     if not existsDir(tmpdir):
       echo "  [td] Removed tmpdir: $#".format(
@@ -52,7 +52,7 @@ proc getExampleOutput() =
 suite "setuid file listing tests":
 
   setUpSetUIDListing()
-  
+
   test "it identifies the setuid bit":
     var
       lines = ll(tmpdir).splitLines()
@@ -60,8 +60,6 @@ suite "setuid file listing tests":
 
     lines = filter(lines, (l) => not l.isSummaryLine)
 
-    entries = @[]
-    
     for line in lines:
       entries.add(line)
       check "S" in line
@@ -69,5 +67,5 @@ suite "setuid file listing tests":
     check entries.len == 3
 
   getExampleOutput()
-  
+
   tearDownSuite()
