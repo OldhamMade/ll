@@ -16,13 +16,13 @@ import util
 
 
 var
-  tmpdir: string = nil
+  tmpdir: string
 
 
 
 proc setUpBasicListing() =
   tmpdir = mkdtemp()
-  if tmpdir != nil:
+  if tmpdir.len != 0:
     echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..9:
@@ -32,7 +32,7 @@ proc setUpBasicListing() =
 
 proc setUpDirectoryListing() =
   tmpdir = mkdtemp()
-  if tmpdir != nil:
+  if tmpdir.len != 0:
     echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..9:
@@ -41,7 +41,7 @@ proc setUpDirectoryListing() =
 
 proc setUpMixedListing() =
   tmpdir = mkdtemp()
-  if tmpdir != nil:
+  if tmpdir.len != 0:
     echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..4:
@@ -50,10 +50,10 @@ proc setUpMixedListing() =
   for i in 5..9:
     writeFile(tmpdir / $i, $i)
 
-    
+
 proc setUpSymlinkListing() =
   tmpdir = mkdtemp()
-  if tmpdir != nil:
+  if tmpdir.len != 0:
     echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..4:
@@ -67,7 +67,7 @@ proc setUpSymlinkListing() =
 
 proc setUpSizedListing() =
   tmpdir = mkdtemp()
-  if tmpdir != nil:
+  if tmpdir.len != 0:
     echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
 
   for i in 1..9:
@@ -75,7 +75,7 @@ proc setUpSizedListing() =
 
 
 proc tearDownSuite() =
-  if tmpdir != nil:
+  if tmpdir.len != 0:
     removeDir(tmpdir)
     if not existsDir(tmpdir):
       echo "  [td] Removed tmpdir: $#".format(
@@ -98,7 +98,7 @@ proc getExampleOutput(sortReverse=false, sortBySize=false, sortByMtime=false, di
 suite "basic file listing tests":
 
   setUpBasicListing()
-  
+
   test "it returns the correct number of entries":
     var
       lines = ll(tmpdir).splitLines()
@@ -106,8 +106,6 @@ suite "basic file listing tests":
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-    entries = @[]
-    
     for line in lines:
       entries.add(line)
 
@@ -120,9 +118,6 @@ suite "basic file listing tests":
       lines = ll(tmpdir).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
-
-    entries = @[]
-    expected = @[]
 
     for i in 1..9:
       expected.add($i)
@@ -139,27 +134,27 @@ suite "basic file listing tests":
   test "it contains permissions":
     var
       lines = ll(tmpdir).splitLines()
-    
+
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     for line in lines:
       var permissions = line.split[0]
       permissions = permissions[1..^1]
-      
+
       check permissions.len == 9
-      
+
       for permission in permissions:
         check permission in ['r', 'w', 'x', '-']
 
   test "it contains owner details":
     var
       lines = ll(tmpdir).splitLines()
-    
+
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     let
       reUnixName = re"\b[a-zA-Z]+[a-zA-Z_0-9]*\b"
- 
+
     for line in lines:
       var
         parts = line.split(re"\s+")
@@ -173,14 +168,14 @@ suite "basic file listing tests":
   test "it contains a modified datetime":
     var
       lines = ll(tmpdir).splitLines()
-    
+
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
     let
       reDay = re"\b\d\d?\b"
       reMonth = re"[JFMASOND][a-z]{2}"
       reTime = re"[0-2]\d:[0-5]\d"
- 
+
     for line in lines:
       var
         parts = line.split(re"\s+")[5..7]
@@ -200,7 +195,7 @@ suite "basic file listing tests":
 
 
 suite "directory listing tests":
-  
+
   setUpDirectoryListing()
 
   test "it returns the correct number of entries":
@@ -210,8 +205,6 @@ suite "directory listing tests":
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-    entries = @[]
-    
     for line in lines:
       entries.add(line)
 
@@ -225,13 +218,13 @@ suite "directory listing tests":
 
     for line in lines:
       check line[0] == 'd'
-    
+
   getExampleOutput()
   tearDownSuite()
 
 
 suite "symlink listing tests":
-  
+
   setUpSymlinkListing()
 
   test "it returns the correct number of entries":
@@ -241,8 +234,6 @@ suite "symlink listing tests":
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-    entries = @[]
-    
     for line in lines:
       entries.add(line)
 
@@ -255,14 +246,12 @@ suite "symlink listing tests":
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-    entries = @[]
-    
     for line in lines:
       if line[0] == 'l':
          entries.add(line)
 
     check entries.len == 4
-    
+
   test "it displays symlinks":
     var
       lines = ll(tmpdir).splitLines()
@@ -270,14 +259,12 @@ suite "symlink listing tests":
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-    entries = @[]
-    
     for line in lines:
       if ">" in line:
          entries.add(line)
 
     check entries.len == 4
-    
+
   test "it displays broken symlinks":
     var
       lines = ll(tmpdir).splitLines()
@@ -285,14 +272,12 @@ suite "symlink listing tests":
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-    entries = @[]
-    
     for line in lines:
       if "~>" in line:
          entries.add(line)
 
     check entries.len == 1
-    
+
   getExampleOutput()
   tearDownSuite()
 
@@ -375,7 +360,7 @@ suite "formatting tests":
 
 
 suite "sorting option tests: reverse":
-      
+
   setUpBasicListing()
 
   test "it reverses ordering for -r flag":
@@ -385,9 +370,6 @@ suite "sorting option tests: reverse":
       lines = ll(tmpdir, sortReverse=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
-
-    entries = @[]
-    expected = @[]
 
     for i in 1..9:
       expected.add($i)
@@ -403,12 +385,12 @@ suite "sorting option tests: reverse":
     check entries.len == expected.len
     check entries == expected
 
-  getExampleOutput(sortReverse=true)  
+  getExampleOutput(sortReverse=true)
   tearDownSuite()
 
 
 suite "sorting option tests: size":
-      
+
   setUpSizedListing()
 
   test "it sorts by size order, descending":
@@ -418,9 +400,6 @@ suite "sorting option tests: size":
       lines = ll(tmpdir, sortBySize=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
-
-    entries = @[]
-    expected = @[]
 
     for i in 1..9:
       expected.add($i)
@@ -444,9 +423,6 @@ suite "sorting option tests: size":
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-    entries = @[]
-    expected = @[]
-
     for i in 1..9:
       expected.add($i)
 
@@ -462,9 +438,9 @@ suite "sorting option tests: size":
   getExampleOutput(sortBySize=true)
   tearDownSuite()
 
-  
+
 suite "sorting option tests: modified time":
-      
+
   setUpBasicListing()
 
   test "it sorts by time order":
@@ -474,9 +450,6 @@ suite "sorting option tests: modified time":
       lines = ll(tmpdir, sortByMtime=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
-
-    entries = @[]
-    expected = @[]
 
     for i in 1..9:
       expected.add($i)
@@ -499,9 +472,6 @@ suite "sorting option tests: modified time":
       lines = ll(tmpdir, sortByMtime=true, sortReverse=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
-
-    entries = @[]
-    expected = @[]
 
     for i in 1..9:
       expected.add($i)
@@ -530,8 +500,6 @@ suite "filter option tests: directories":
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-    entries = @[]
-    
     for line in lines:
       entries.add(line)
 
@@ -544,8 +512,6 @@ suite "filter option tests: directories":
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
-    entries = @[]
-    
     for line in lines:
       entries.add(line)
 

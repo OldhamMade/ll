@@ -53,9 +53,9 @@ const
 
 
 let
-  ColorCode = re"\x1B\[([0-9]{1,2}(;[0-9]+)*)?[mGK]"
+  colorCode = re"\x1B\[([0-9]{1,2}(;[0-9]+)*)?[mGK]"
 
-  
+
 proc reset(): string {.procvar.} =
   "\e[0m"
 
@@ -113,14 +113,14 @@ proc colorizeBrokenSymlink*(s: string): string {.procvar.} =
 
 
 proc clean*(s: string): string =
-  s.replace(ColorCode, "")
+  s.replace(colorCode, "")
 
 
 proc padLeft*(s: string, l=0, c=' '): string =
   ## add `l` instances of `c`
   ## to the left side of string `s`
   let
-    markers = s.findAll(ColorCode)
+    markers = s.findAll(colorCode)
   join([markers[0], align(s.clean(), l, c), markers[1]])
 
 
@@ -128,7 +128,7 @@ proc padRight*(s: string, l=0, c=' '): string =
   ## add `l` instances of `c`
   ## to the right side of string `s`
   let
-    markers = s.findAll(ColorCode)
+    markers = s.findAll(colorCode)
   join([markers[0], alignLeft(s.clean(), l, c), markers[1]])
 
 

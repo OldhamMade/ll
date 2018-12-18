@@ -448,10 +448,10 @@ proc formatName(entry: Entry): string =
   if entry.kind == FileType.Socket:
     return entry.name.colSocket
 
-  if entry.symlink != nil and existsDir(entry.symlink):
+  if entry.symlink.len != 0 and existsDir(entry.symlink):
     return entry.name.colDirectory
 
-  if entry.symlink != nil:
+  if entry.symlink.len != 0:
     return entry.name.colSymlink
 
   if entry.executable:
@@ -461,7 +461,7 @@ proc formatName(entry: Entry): string =
 
 
 proc formatArrow(entry: Entry): string =
-  if entry.symlink == nil:
+  if entry.symlink.len == 0:
     return ""
 
   if entry.symlinkBroken:
@@ -471,7 +471,7 @@ proc formatArrow(entry: Entry): string =
 
 
 proc formatSymlink(entry: Entry): string =
-  if entry.symlink == nil:
+  if entry.symlink.len == 0:
     return ""
 
   if entry.symlinkBroken:
@@ -659,14 +659,14 @@ when isMainModule:
   let args = docopt(Usage, version=AppVersionFull)
 
   var
-    target_path =
+    targetPath =
       if not args["<path>"]: ""
       else: $args["<path>"]
 
-  target_path = getTargetPath(target_path)
+  targetPath = getTargetPath(targetPath)
 
   echo ll(
-    path=target_path,
+    path=targetPath,
     all=args["--all"],
     aall=args["--almost-all"],
     dirsOnly=args["--directory"],
