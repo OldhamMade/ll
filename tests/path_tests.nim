@@ -13,7 +13,7 @@ suite "basic path tests":
   test "it provides absolute paths for common shortcuts":
     let
       trim = (s: string) => s.strip(leading=false, chars={'/'})
-    
+
     check:
       getTargetPath("..").trim == expandFilename(getCurrentDir() / "..").trim
       getTargetPath(".").trim == getCurrentDir().trim
