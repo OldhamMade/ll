@@ -1,15 +1,16 @@
-import algorithm
+import
+  algorithm,
+  os,
+  osproc,
+  posix,
+  sequtils,
+  strutils,
+  sugar,
+  tables,
+  times,
+  typeinfo
+
 import memo
-import os
-import osproc
-import parseutils
-import posix
-import sequtils
-import strutils
-import sugar
-import tables
-import times
-import typeinfo
 
 when defined(profiler):
   import nimprof
@@ -18,7 +19,6 @@ import llpkg/display
 
 
 const
-  Usage = staticRead("usage.txt")
   AppName = "ll"
   AppVersion = "0.1.1"
   AppVersionFull = "$1, version $2".format(AppName, AppVersion)
@@ -405,9 +405,8 @@ proc formatSizeReadable(size: int64): string =
     formatted = formatSize(size, includeSpace=true).split
     num = formatted[0]
     suffix = formatted[1][0].toUpperAscii
-    parsed: float
 
-  discard parseFloat(num, parsed)
+  let parsed = parseFloat(num)
 
   result = if parsed < 10.0: parsed.formatFloat(ffDecimal, 1)
            else: parsed.formatFloat(ffDecimal, 0, decimalSep=' ').strip
@@ -591,7 +590,8 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
     result = result.reversed()
 
 
-proc ll(path: string,
+proc llCompose(
+        path: string,
         all = false,
         aall = true,
         dirsOnly = false,
@@ -632,8 +632,7 @@ proc ll(path: string,
     entries = getFileList(path, displayopts)
     formatted = formatattributes(entries, displayopts)
 
-  result = formatSummary(entries) & "\n"
-  result &= tabulate(formatted)
+  result = formatSummary(entries) & "\n" & tabulate(formatted)
 
 
 proc getTargetPath(path: string): string =
@@ -654,26 +653,37 @@ proc getTargetPath(path: string): string =
 
 
 when isMainModule:
-  import docopt
+  import cligen
 
-  let args = docopt(Usage, version=AppVersionFull)
+  proc ll(
+    path = @[""],
+    all = false,
+    almost_all = false,
+    directory = false,
+    no_directory = false,
+    size = false,
+    mtime = false,
+    reverse = false,
+    human = false,
+    no_vcs = false) =
+      echo llCompose(getTargetPath path[0], all, almost_all, directory,
+                     no_directory, size, mtime, reverse, human, not no_vcs)
 
-  var
-    targetPath =
-      if not args["<path>"]: ""
-      else: $args["<path>"]
-
-  targetPath = getTargetPath(targetPath)
-
-  echo ll(
-    path=targetPath,
-    all=args["--all"],
-    aall=args["--almost-all"],
-    dirsOnly=args["--directory"],
-    filesOnly=args["--no-directory"],
-    sortBySize=args["--size"],
-    sortByMtime=args["--mtime"],
-    sortReverse=args["--reverse"],
-    human=args["--human"],
-    vcs=not args["--no-vcs"],
-  )
+  clCfg.version = AppVersionFull
+  dispatch ll,
+    short = {"size": 'S',
+             "mtime": 't',
+             "no_vcs": 'V',
+             "almost_all": 'A',
+             "version": 'v'},
+    help = {
+      "all": "list entries starting with .",
+      "almost_all": "list all except . and ..",
+      "directory": "list only directories",
+      "no_directory": "do not list directories",
+      "human": "show filesizes in human-readable format",
+      "size": "sort by size (largest first)",
+      "mtime": "sort by modified time (most recently modified first)",
+      "reverse": "reverse sort order",
+      "no_vcs": "do not get VCS status (faster)",
+    }

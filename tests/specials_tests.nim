@@ -45,7 +45,7 @@ proc tearDownSuite() =
 
 proc getExampleOutput() =
   echo "\nExample output:"
-  echo ll(tmpdir)
+  echo llCompose(tmpdir)
   echo ""
 
 
@@ -55,7 +55,7 @@ suite "setuid file listing tests":
 
   test "it identifies the setuid bit":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine)
