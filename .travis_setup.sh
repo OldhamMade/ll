@@ -19,10 +19,10 @@ if [ ! -f "$HOME/.asdf/plugins/nim/bin/install" ]; then
     asdf plugin-add nim https://github.com/rfrancis/asdf-nim
 fi
 
-if [ ! -f "$HOME/.asdf/installs/nim/v0.19.0/bin/nim" ]; then
-    echo "Installing nim v0.19.0 via asdf"
-    asdf install nim v0.19.0
+if [ ! -f "$HOME/.asdf/installs/nim/v0.20.0/bin/nim" ]; then
+    echo "Installing nim v0.20.0 via asdf"
+    asdf install nim v0.20.0
 fi
 
-echo "Setting nim v0.19.0 as global"
-asdf global nim v0.19.0
+echo "Setting nim v0.20.0 as global"
+asdf global nim v0.20.0

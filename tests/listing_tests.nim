@@ -85,7 +85,7 @@ proc tearDownSuite() =
 
 proc getExampleOutput(sortReverse=false, sortBySize=false, sortByMtime=false, dirsOnly=false) =
   echo "\nExample output:"
-  echo ll(
+  echo llCompose(
     tmpdir,
     sortReverse=sortReverse,
     sortBySize=sortBySize,
@@ -101,7 +101,7 @@ suite "basic file listing tests":
 
   test "it returns the correct number of entries":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -115,7 +115,7 @@ suite "basic file listing tests":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -133,7 +133,7 @@ suite "basic file listing tests":
 
   test "it contains permissions":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -148,7 +148,7 @@ suite "basic file listing tests":
 
   test "it contains owner details":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -167,7 +167,7 @@ suite "basic file listing tests":
 
   test "it contains a modified datetime":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -200,7 +200,7 @@ suite "directory listing tests":
 
   test "it returns the correct number of entries":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -212,7 +212,7 @@ suite "directory listing tests":
 
   test "it identifies directories":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -229,7 +229,7 @@ suite "symlink listing tests":
 
   test "it returns the correct number of entries":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -241,7 +241,7 @@ suite "symlink listing tests":
 
   test "it identifies symlinks":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -254,7 +254,7 @@ suite "symlink listing tests":
 
   test "it displays symlinks":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -267,7 +267,7 @@ suite "symlink listing tests":
 
   test "it displays broken symlinks":
     var
-      lines = ll(tmpdir).splitLines()
+      lines = llCompose(tmpdir).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -367,7 +367,7 @@ suite "sorting option tests: reverse":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = ll(tmpdir, sortReverse=true).splitLines()
+      lines = llCompose(tmpdir, sortReverse=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -397,7 +397,7 @@ suite "sorting option tests: size":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = ll(tmpdir, sortBySize=true).splitLines()
+      lines = llCompose(tmpdir, sortBySize=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -419,7 +419,7 @@ suite "sorting option tests: size":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = ll(tmpdir, sortBySize=true, sortReverse=true).splitLines()
+      lines = llCompose(tmpdir, sortBySize=true, sortReverse=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -447,7 +447,7 @@ suite "sorting option tests: modified time":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = ll(tmpdir, sortByMtime=true).splitLines()
+      lines = llCompose(tmpdir, sortByMtime=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -469,7 +469,7 @@ suite "sorting option tests: modified time":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = ll(tmpdir, sortByMtime=true, sortReverse=true).splitLines()
+      lines = llCompose(tmpdir, sortByMtime=true, sortReverse=true).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -495,7 +495,7 @@ suite "filter option tests: directories":
 
   test "it shows only directories":
     var
-      lines = ll(tmpdir, dirsOnly=true).splitLines()
+      lines = llCompose(tmpdir, dirsOnly=true).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -507,7 +507,7 @@ suite "filter option tests: directories":
 
   test "it shows only files":
     var
-      lines = ll(tmpdir, filesOnly=true).splitLines()
+      lines = llCompose(tmpdir, filesOnly=true).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)

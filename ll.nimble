@@ -5,13 +5,12 @@ author        = "Phillip Oldham"
 description   = "ll - a more informative ls, based on k"
 license       = "MIT"
 srcDir        = "src"
-skipFiles     = @["usage.txt"]
 bin           = @["ll"]
 
 # Dependencies
 
-requires "nim >= 0.19.0"
-requires "docopt >= 0.6.8"
+requires "nim >= 0.20.0"
+requires "cligen >= 0.9.31"
 requires "tempfile >= 0.1.5"
 requires "memo >= 0.2.1"
 
