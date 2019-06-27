@@ -592,6 +592,15 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
 
 proc llCompose(
         path: string,
+        displayopts: DisplayOpts): string =
+  let
+    entries = getFileList(path, displayopts)
+    formatted = formatattributes(entries, displayopts)
+
+  result = formatSummary(entries) & "\n" & tabulate(formatted)
+
+
+proc buildDisplayOpts(
         all = false,
         aall = true,
         dirsOnly = false,
@@ -600,8 +609,7 @@ proc llCompose(
         sortByMtime = false,
         sortReverse = false,
         human = false,
-        vcs = true): string =
-
+        vcs = true): DisplayOpts =
   var
     optAll =
       if all: DisplayAll.all
@@ -619,24 +627,22 @@ proc llCompose(
       elif sortByMtime: DisplaySort.mtime
       else: DisplaySort.default
 
-  let
-    displayOpts = DisplayOpts(
-      all: optAll,
-      dirs: optDirs,
-      size: optSize,
-      sortBy: optSort,
-      reversed: sortReverse,
-      vcs: vcs,
-      hasGit: gitAvailable(),
-    )
-    entries = getFileList(path, displayopts)
-    formatted = formatattributes(entries, displayopts)
-
-  result = formatSummary(entries) & "\n" & tabulate(formatted)
+  return DisplayOpts(
+    all: optAll,
+    dirs: optDirs,
+    size: optSize,
+    sortBy: optSort,
+    reversed: sortReverse,
+    vcs: vcs,
+    hasGit: gitAvailable(),
+  )
 
 
-proc getTargetPath(path: string): string =
-  var path = path
+proc getTargetPath(path: seq[string]): string =
+  var
+    path =
+      if path.len < 1: ""
+      else: path[0]
 
   case path
   of "":
@@ -656,7 +662,7 @@ when isMainModule:
   import cligen
 
   proc ll(
-    path = @[""],
+    path: seq[string],
     all = false,
     almost_all = false,
     directory = false,
@@ -666,8 +672,13 @@ when isMainModule:
     reverse = false,
     human = false,
     no_vcs = false) =
-      echo llCompose(getTargetPath path[0], all, almost_all, directory,
-                     no_directory, size, mtime, reverse, human, not no_vcs)
+
+    var
+      displayOpts =
+        buildDisplayOpts(all, almost_all, directory, no_directory,
+                         size, mtime, reverse, human, no_vcs)
+
+    echo llCompose(getTargetPath path, displayOpts)
 
   clCfg.version = AppVersionFull
   dispatch ll,

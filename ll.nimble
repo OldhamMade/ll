@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.1.1"
 author        = "Phillip Oldham"
 description   = "ll - a more informative ls, based on k"
 license       = "MIT"
