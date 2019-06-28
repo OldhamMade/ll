@@ -29,7 +29,7 @@ Calling `ll` provides a full file listing for a directory, similar to calling
 
 Files sizes are graded from green for small (< 1k), to red for huge (> 1mb).
 
-Human readable files sizes can be shown by using the `--human` flag.
+Human readable files sizes can be shown by using the `-h` or `--human` flag.
 
 ### "Rotting" dates
 
@@ -92,7 +92,7 @@ directory and will then opy the resulting `ll` binary to `/usr/local/bin`.
 
     $ ll
 
-That's it. For more options, pass `-h` or `--help`.
+That's it. For more options, pass `-?` or `--help`.
 
 ## Development
 

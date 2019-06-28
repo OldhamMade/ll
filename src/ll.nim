@@ -682,11 +682,15 @@ when isMainModule:
 
   clCfg.version = AppVersionFull
   dispatch ll,
-    short = {"size": 'S',
-             "mtime": 't',
-             "no_vcs": 'V',
-             "almost_all": 'A',
-             "version": 'v'},
+    short = {
+      "size": 'S',
+      "mtime": 't',
+      "no_vcs": 'V',
+      "almost_all": 'A',
+      "version": 'v',
+      "human": 'h',
+      "help": '?'
+      },
     help = {
       "all": "list entries starting with .",
       "almost_all": "list all except . and ..",
