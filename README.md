@@ -1,6 +1,6 @@
 # `ll` - a more informative `ls`, based on [`k`][1]
 
-[![Waffle.io - Summary][7]][8] [![Travis Build][9]][10]
+[![Travis Build][9]][10]
 
 
 ## Description
@@ -29,7 +29,7 @@ Calling `ll` provides a full file listing for a directory, similar to calling
 
 Files sizes are graded from green for small (< 1k), to red for huge (> 1mb).
 
-Human readable files sizes can be shown by using the `-h` flag.
+Human readable files sizes can be shown by using the `-h` or `--human` flag.
 
 ### "Rotting" dates
 
@@ -74,35 +74,33 @@ and install using the following instructions.
 
 ### Requirements
 
-- [Nim][3], minimum v0.19.0
+- [Nim][3], minimum v0.20.0
 - `make`
 
 ### Steps
 
-Firstly install [Nim][3]. You'll need to install version 0.19 as a
+Firstly install [Nim][3]. You'll need to install version 0.20 as a
 minimum. I personally use [`asdf`][6] to manage Nim versions on my
 machine. With `asdf` installed, this is as simple as calling `asdf
-install nim v0.19.0`.
+install nim v0.20.0`.
 
 Once Nim is installed, clone this repository. From within the cloned
-directory, call `make release` which will build `ll` into the working
-directory. Copy the resulting `ll` binary to a location in your
-`$PATH` (eg. `/usr/local/bin`).
+directory, call `make install` which will build `ll` into the working
+directory and will then opy the resulting `ll` binary to `/usr/local/bin`.
 
 ## Usage
 
     $ ll
 
-That's it. For more options, pass `--help`. Alternatively, read the
-[usage](src/usage.txt) file.
+That's it. For more options, pass `-?` or `--help`.
 
 ## Development
 
-`ll` is developed using Github issues and [Kanban][4] (via
-[Waffle][5]). If you would like to request a feature or report a bug,
-please add a new issue [here](https://github.com/OldhamMade/ll/issues)
-and we'll do our best to address them. Please note that this is not a
-funded project and fixes will be addressed on a best-effort basis.
+`ll` is developed using Github issues and [Kanban][4]. If you would
+like to request a feature or report a bug, please add a new issue
+[here](https://github.com/OldhamMade/ll/issues) and we'll do our best
+to address them. Please note that this is not a funded project and
+fixes will be addressed on a best-effort basis.
 
 Contributions and pull-requests are always welcome, as is constructive
 feedback around code structure, hints, tips, etc.
@@ -147,7 +145,6 @@ the listing; I'm currently reviewing what would be most useful.
 [2]: https://en.wikipedia.org/wiki/Z_shell
 [3]: https://nim-lang.org
 [4]: https://en.wikipedia.org/wiki/Kanban
-[5]: https://waffle.io
 [6]: https://github.com/asdf-vm/asdf
 [7]: https://badge.waffle.io/03e04bd3c5dd71dd392210b4479adccc.svg?columns=all
 [8]: https://waffle.io/OldhamMade/ll

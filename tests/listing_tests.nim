@@ -23,7 +23,7 @@ var
 proc setUpBasicListing() =
   tmpdir = mkdtemp()
   if tmpdir.len != 0:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir, buildDisplayOpts()).fgDarkGray()
 
   for i in 1..9:
     writeFile(tmpdir / $i, $i)
@@ -33,7 +33,7 @@ proc setUpBasicListing() =
 proc setUpDirectoryListing() =
   tmpdir = mkdtemp()
   if tmpdir.len != 0:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir, buildDisplayOpts()).fgDarkGray()
 
   for i in 1..9:
     createDir(tmpdir / $i)
@@ -42,7 +42,7 @@ proc setUpDirectoryListing() =
 proc setUpMixedListing() =
   tmpdir = mkdtemp()
   if tmpdir.len != 0:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir, buildDisplayOpts()).fgDarkGray()
 
   for i in 1..4:
     createDir(tmpdir / $i)
@@ -54,7 +54,7 @@ proc setUpMixedListing() =
 proc setUpSymlinkListing() =
   tmpdir = mkdtemp()
   if tmpdir.len != 0:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir, buildDisplayOpts()).fgDarkGray()
 
   for i in 1..4:
     writeFile(tmpdir / $i, $i)
@@ -68,7 +68,7 @@ proc setUpSymlinkListing() =
 proc setUpSizedListing() =
   tmpdir = mkdtemp()
   if tmpdir.len != 0:
-    echo "  [su] Created tmpdir: $#".format(tmpdir).fgDarkGray()
+    echo "  [su] Created tmpdir: $#".format(tmpdir, buildDisplayOpts()).fgDarkGray()
 
   for i in 1..9:
     writeFile(tmpdir / $i, $i.repeat(i))
@@ -87,10 +87,12 @@ proc getExampleOutput(sortReverse=false, sortBySize=false, sortByMtime=false, di
   echo "\nExample output:"
   echo llCompose(
     tmpdir,
-    sortReverse=sortReverse,
-    sortBySize=sortBySize,
-    sortByMtime=sortByMtime,
-    dirsOnly=dirsOnly,
+    buildDisplayOpts(
+      sortReverse=sortReverse,
+      sortBySize=sortBySize,
+      sortByMtime=sortByMtime,
+      dirsOnly=dirsOnly,
+    )
   )
   echo ""
 
@@ -101,7 +103,7 @@ suite "basic file listing tests":
 
   test "it returns the correct number of entries":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -115,7 +117,7 @@ suite "basic file listing tests":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -133,7 +135,7 @@ suite "basic file listing tests":
 
   test "it contains permissions":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -148,7 +150,7 @@ suite "basic file listing tests":
 
   test "it contains owner details":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -167,7 +169,7 @@ suite "basic file listing tests":
 
   test "it contains a modified datetime":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -200,7 +202,7 @@ suite "directory listing tests":
 
   test "it returns the correct number of entries":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -212,7 +214,7 @@ suite "directory listing tests":
 
   test "it identifies directories":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -229,7 +231,7 @@ suite "symlink listing tests":
 
   test "it returns the correct number of entries":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -241,7 +243,7 @@ suite "symlink listing tests":
 
   test "it identifies symlinks":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -254,7 +256,7 @@ suite "symlink listing tests":
 
   test "it displays symlinks":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -267,7 +269,7 @@ suite "symlink listing tests":
 
   test "it displays broken symlinks":
     var
-      lines = llCompose(tmpdir).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts()).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -367,7 +369,7 @@ suite "sorting option tests: reverse":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = llCompose(tmpdir, sortReverse=true).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts(sortReverse=true)).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -397,7 +399,7 @@ suite "sorting option tests: size":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = llCompose(tmpdir, sortBySize=true).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts(sortBySize=true)).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -419,7 +421,7 @@ suite "sorting option tests: size":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = llCompose(tmpdir, sortBySize=true, sortReverse=true).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts(sortBySize=true, sortReverse=true)).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -447,7 +449,7 @@ suite "sorting option tests: modified time":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = llCompose(tmpdir, sortByMtime=true).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts(sortByMtime=true)).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -469,7 +471,7 @@ suite "sorting option tests: modified time":
     var
       entries: seq[string]
       expected: seq[string]
-      lines = llCompose(tmpdir, sortByMtime=true, sortReverse=true).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts(sortByMtime=true, sortReverse=true)).splitLines()
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
 
@@ -495,7 +497,7 @@ suite "filter option tests: directories":
 
   test "it shows only directories":
     var
-      lines = llCompose(tmpdir, dirsOnly=true).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts(dirsOnly=true)).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
@@ -507,7 +509,7 @@ suite "filter option tests: directories":
 
   test "it shows only files":
     var
-      lines = llCompose(tmpdir, filesOnly=true).splitLines()
+      lines = llCompose(tmpdir, buildDisplayOpts(filesOnly=true)).splitLines()
       entries: seq[string]
 
     lines = filter(lines, (l) => not l.isSummaryLine).map(clean)
