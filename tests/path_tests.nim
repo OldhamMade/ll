@@ -15,13 +15,13 @@ suite "basic path tests":
       trim = (s: string) => s.strip(leading=false, chars={'/'})
 
     check:
-      getTargetPath(@[".."]).trim == expandFilename(getCurrentDir() / "..").trim
-      getTargetPath(@["."]).trim == getCurrentDir().trim
-      getTargetPath(@["~"]).trim == getHomeDir().trim
+      getTargetPath("..").trim == expandFilename(getCurrentDir() / "..").trim
+      getTargetPath(".").trim == getCurrentDir().trim
+      getTargetPath("~").trim == getHomeDir().trim
 
 
   test "it recognises absolute paths":
     if defined(macosx):
-      check getTargetPath(@["/tmp"]) == "/private/tmp"
+      check getTargetPath("/tmp") == "/private/tmp"
     else:
-      check getTargetPath(@["/tmp"]) == "/tmp"
+      check getTargetPath("/tmp") == "/tmp"
