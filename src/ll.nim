@@ -52,6 +52,7 @@ type
     reversed: bool
     vcs: bool
     hasGit: bool
+    pathHeader: bool
 
   GitStatus {.pure.} = enum
     Unknown,
@@ -151,15 +152,15 @@ proc isWritableByOthers(perms: set[FilePermission]): bool =
 
 
 proc isGID(mode: Mode): bool =
-  return (mode and S_ISGID) > 0
+  (mode and S_ISGID) > 0
 
 
 proc isUID(mode: Mode): bool =
-  return (mode and S_ISUID) > 0
+  (mode and S_ISUID) > 0
 
 
 proc hasStickyBit(mode: Mode): bool =
-  return (mode and S_ISVTX) > 0
+  (mode and S_ISVTX) > 0
 
 
 proc getKind(mode: Mode): FileType =
@@ -188,27 +189,27 @@ proc getKind(mode: Mode): FileType =
 proc gitAvailable(executable="git"): bool =
   let
     output = execProcess(executable & " --version")
-  return executable & " version" in output
+  executable & " version" in output
 
 
 proc gitTopLevel(path: string): string {.memoized.} =
-  return execProcess("cd $# && git rev-parse --show-toplevel".format(path)).strip
+  execProcess("cd $# && git rev-parse --show-toplevel".format(path)).strip
 
 
 proc gitTopLevelStatus(path: string): string {.memoized.} =
-  return execProcess(
+  execProcess(
     "cd $# && git status --porcelain --ignored --untracked-files=normal .".format(path)
   )
 
 
 proc gitInsideWorkTree(path: string): bool {.memoized.} =
-  return execProcess(
+  execProcess(
     "cd $# && git rev-parse --is-inside-work-tree".format(path)
   ).strip == "true"
 
 
 proc gitWorkTreeDirty(path: string): bool {.memoized.} =
-  return execProcess(
+  execProcess(
     "git --git-dir=\"$#/.git\" --work-tree=\"$#\" diff --stat --ignore-submodules HEAD".format(
       path,
       path
@@ -217,6 +218,8 @@ proc gitWorkTreeDirty(path: string): bool {.memoized.} =
 
 
 proc gitStatus(path: string): string =
+  result = ""
+
   var
     (dir, name, ext) = splitFile(path)
 
@@ -242,8 +245,6 @@ proc gitStatus(path: string): string =
     if existsDir(path) and fullpath.startsWith(path):
       return status
 
-  return ""
-
 
 proc gitStatus(entry: Entry): GitStatus =
   if not entry.gitInsideWorkTree:
@@ -255,7 +256,7 @@ proc gitStatus(entry: Entry): GitStatus =
   if GitStatusMap.hasKey(status):
     return GitStatusMap[status]
 
-  return GitStatus.Good
+  GitStatus.Good
 
 
 proc gitWorkingCopyStatus(entry: Entry): GitStatus =
@@ -314,7 +315,7 @@ proc getFileDetails(path: string, name: string, kind: PathComponent, vsc=true): 
   elif entry.kind == FileType.Dir:
     entry.gitStatus = gitWorkingCopyStatus(entry)
 
-  return entry
+  entry
 
 
 proc formatKind(entry: Entry): string =
@@ -357,7 +358,7 @@ proc formatPermissions(entry: Entry): string =
   if FilePermission.fpOthersExec in entry.permissions and hasStickyBit(entry.mode):
     permissions[8] = 't'
 
-  return permissions.join
+  permissions.join
 
 
 proc formatLinks(entry: Entry): string =
@@ -375,14 +376,14 @@ proc formatGroup(entry: Entry): string =
 
 
 proc formatGit(entry: Entry): string =
+  result = " "
+
   if entry.kind == FileType.Dir and entry.name == ".git":
     # special-case: ignore git status for .git directories
     return " "
 
   if GitDisplayMap.hasKey(entry.gitStatus):
     return GitDisplayMap[entry.gitStatus]
-
-  return " "
 
 
 proc formatTime(entry: Entry): string =
@@ -456,7 +457,7 @@ proc formatName(entry: Entry): string =
   if entry.executable:
     return entry.name.colExecutable
 
-  return entry.name
+  entry.name
 
 
 proc formatArrow(entry: Entry): string =
@@ -477,6 +478,13 @@ proc formatSymlink(entry: Entry): string =
     return entry.symlink.colorizeBrokenSymlink()
 
   entry.symlink.colorizeSymlink()
+
+
+proc formatHeader(path: string, displayOpts: DisplayOpts): string =
+  if displayOpts.pathHeader == false:
+    return ""
+
+  "$#:".format(path)
 
 
 proc formatSummary(entries: seq[Entry]): string =
@@ -590,16 +598,6 @@ proc getFileList(path: string, displayopts: DisplayOpts): seq[Entry] =
     result = result.reversed()
 
 
-proc llCompose(
-        path: string,
-        displayopts: DisplayOpts): string =
-  let
-    entries = getFileList(path, displayopts)
-    formatted = formatattributes(entries, displayopts)
-
-  result = formatSummary(entries) & "\n" & tabulate(formatted)
-
-
 proc buildDisplayOpts(
         all = false,
         aall = true,
@@ -609,7 +607,8 @@ proc buildDisplayOpts(
         sortByMtime = false,
         sortReverse = false,
         human = false,
-        vcs = true): DisplayOpts =
+        vcs = true,
+        pathHeader = false): DisplayOpts =
   var
     optAll =
       if all: DisplayAll.all
@@ -635,34 +634,59 @@ proc buildDisplayOpts(
     reversed: sortReverse,
     vcs: vcs,
     hasGit: gitAvailable(),
+    pathHeader: pathHeader,
   )
 
 
-proc getTargetPath(path: seq[string]): string =
+proc getTargetPath(path: string): string =
   var
-    path =
-      if path.len < 1: ""
-      else: path[0]
+    target = path
 
   case path
   of "":
-    path = getCurrentDir()
+    target = getCurrentDir()
   of ".":
-    path = getCurrentDir()
+    target = getCurrentDir()
   of "~":
-    path = getHomeDir()
+    target = getHomeDir()
   else:
     if not isAbsolute(path):
-      path = getCurrentDir() / path
+      target = getCurrentDir() / path
 
-  return expandFilename(path)
+  expandFilename(target)
+
+
+proc llCompose(
+        paths: seq[string],
+        displayopts: DisplayOpts): string =
+
+  var
+    lines: seq[string]
+    cleanedPaths = if paths.len == 0: @[""]
+                   else: paths
+
+  for path in cleanedPaths:
+
+    let
+      entries = getFileList(getTargetPath(path), displayopts)
+      formatted = formatattributes(entries, displayopts)
+
+    lines.add(
+      @[
+        formatHeader(path, displayopts),
+        formatSummary(entries),
+        tabulate(formatted)
+      ].join("\n")
+    )
+
+  lines.join("\n\n").strip()
 
 
 when isMainModule:
   import cligen
 
   proc ll(
-    path: seq[string],
+    paths: seq[string],
     all = false,
     almost_all = false,
     directory = false,
@@ -674,11 +698,12 @@ when isMainModule:
     no_vcs = false) =
 
     var
+      showPathHeader = paths.len > 1
       displayOpts =
         buildDisplayOpts(all, almost_all, directory, no_directory,
-                         size, mtime, reverse, human, no_vcs)
-
-    echo llCompose(getTargetPath path, displayOpts)
+                         size, mtime, reverse, human, no_vcs,
+                         showPathHeader)
+    echo llCompose(paths, displayOpts)
 
   clCfg.version = AppVersionFull
   dispatch ll,
