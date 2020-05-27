@@ -152,15 +152,15 @@ proc isWritableByOthers(perms: set[FilePermission]): bool =
 
 
 proc isGID(mode: Mode): bool =
-  (mode and S_ISGID) > 0
+  (mode and S_ISGID.uint64) > 0
 
 
 proc isUID(mode: Mode): bool =
-  (mode and S_ISUID) > 0
+  (mode and S_ISUID.uint64) > 0
 
 
 proc hasStickyBit(mode: Mode): bool =
-  (mode and S_ISVTX) > 0
+  (mode and S_ISVTX.uint64) > 0
 
 
 proc getKind(mode: Mode): FileType =
