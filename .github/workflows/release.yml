@@ -1,0 +1,45 @@
+name: Create Release
+
+on:
+  # Trigger this workflow on push (merge) events,
+  # but only for the main branch
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "[Git] Checkout code"
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: "[Version] Install"
+        uses: gittools/actions/gitversion/setup@v0.9.6
+        with:
+          versionSpec: '5.x'
+
+      - name: "[Version] Calculate"
+        id: gitversion # step id used as reference for output values
+        uses: gittools/actions/gitversion/execute@v0.9.6
+
+      - name: "[Version] Capture"
+        run: echo "RELEASE_VERSION=${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_ENV
+
+      - name: "[Release] Create"
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{env.RELEASE_VERSION}}
+          release_name: ${{env.RELEASE_VERSION}}
+          body: |
+            Please see the changelog for details of this release
+          draft: false
+          prerelease: false

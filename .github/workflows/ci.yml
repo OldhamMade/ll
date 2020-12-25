@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    # CI shouldn't need to run on the main branch,
+    # just working & PR branches
+    branches-ignore:
+      - main
+      - master
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        branch: [master]
+        target:
+          - nim_version: 1.2.8
+            os: linux
+          - nim_version: 1.4.2
+            os: linux
+          - nim_version: 1.2.8
+            os: macos
+          - nim_version: 1.4.2
+            os: macos
+        include:
+          - target:
+              os: linux
+            builder: ubuntu-18.04
+          - target:
+              os: macos
+            builder: macos-10.15
+
+    name: '${{ matrix.target.os }}-nim${{ matrix.target.nim_version }} (${{ matrix.branch }})'
+    runs-on: ${{ matrix.builder }}
+
+    steps:
+      - name: "[Git] Checkout code"
+        uses: actions/checkout@v2
+      - name: "[Setup] Configure caching"
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.asdf
+          key: ${{ matrix.target.os }}-nim${{ matrix.target.nim_version }}-${{ hashFiles('**/lockfiles') }}
+      - name: "[Setup] Install deps"
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-fast update -qq
+          sudo apt-fast --no-install-recommends -yq install curl git
+      - name: "[Setup] Install asdf"
+        run: |
+          [ -d ~/.asdf ] || git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.8.0
+      - name: "[Setup] Install nim dependencies"
+        run: |
+          source $HOME/.asdf/asdf.sh
+          [ -e $(asdf plugin list|grep nim) ] && asdf plugin add nim
+          asdf install nim ${{ matrix.target.nim_version }}
+      - name: "[Test] Run tests"
+        run: |
+          source $HOME/.asdf/asdf.sh
+          asdf info
+          asdf global nim ${{ matrix.target.nim_version }}
+          make test

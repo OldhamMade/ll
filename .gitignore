@@ -562,3 +562,4 @@ nimcache/
 /ll
 /src/ll
 profile_results.txt
+/tests/all.*/
