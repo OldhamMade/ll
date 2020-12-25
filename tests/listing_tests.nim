@@ -60,7 +60,10 @@ proc setUpSymlinkListing() =
     writeFile(tmpdir / $i, $i)
 
   for pair in zip(toSeq(1..4), toSeq(5..9)):
-    createSymlink(tmpdir / $pair.a, tmpdir / $pair.b)
+    when (NimMajor, NimMinor) <= (1, 0):
+      createSymlink(tmpdir / $pair.a, tmpdir / $pair.b)
+    else:
+      createSymlink(tmpdir / $pair[0], tmpdir / $pair[1])
 
   removeFile(tmpdir / "1")
 

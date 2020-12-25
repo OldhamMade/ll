@@ -1,6 +1,6 @@
 # `ll` - a more informative `ls`, based on [`k`][1]
 
-[![Travis Build][9]][10]
+![CI](https://github.com/OldhamMade/ll/workflows/CI/badge.svg)
 
 
 ## Description
@@ -74,15 +74,14 @@ and install using the following instructions.
 
 ### Requirements
 
-- [Nim][3], minimum v0.20.0
+- [Nim][3], minimum v1.2.*
 - `make`
 
 ### Steps
 
-Firstly install [Nim][3]. You'll need to install version 0.20 as a
-minimum. I personally use [`asdf`][6] to manage Nim versions on my
-machine. With `asdf` installed, this is as simple as calling `asdf
-install nim v0.20.0`.
+Firstly install [Nim][3]. I personally use [`asdf`][6] to manage Nim
+versions on my machine. With `asdf` installed, this is as simple as
+calling `asdf install nim latest`.
 
 Once Nim is installed, clone this repository. From within the cloned
 directory, call `make install` which will build `ll` into the working
@@ -93,17 +92,6 @@ directory and will then opy the resulting `ll` binary to `/usr/local/bin`.
     $ ll
 
 That's it. For more options, pass `-?` or `--help`.
-
-## Development
-
-`ll` is developed using Github issues and [Kanban][4]. If you would
-like to request a feature or report a bug, please add a new issue
-[here](https://github.com/OldhamMade/ll/issues) and we'll do our best
-to address them. Please note that this is not a funded project and
-fixes will be addressed on a best-effort basis.
-
-Contributions and pull-requests are always welcome, as is constructive
-feedback around code structure, hints, tips, etc.
 
 ## Status
 
@@ -140,13 +128,44 @@ over. If any other enhancements are added, I hope to port those also.
 I'd like to display some additional information in the summary line of
 the listing; I'm currently reviewing what would be most useful.
 
+## Contributing
+
+Contributions and pull-requests are always welcome, as is constructive
+feedback around code structure, hints, tips, etc.
+
+If you would like to request a feature or report a bug, please add a
+new issue [here](https://github.com/OldhamMade/ll/issues) and we'll do
+our best to address them. Please note that this is not a funded
+project and fixes will be addressed on a best-effort basis.
+
+To contribute directly:
+
+1.  Fork it (https://github.com/OldhamMade/ll/fork)
+2.  Create your feature branch (`git checkout -b my-new-feature`)
+3.  Commit your changes (`git commit -am 'Add some feature'`)
+4.  Push to the branch (`git push origin my-new-feature`)
+5.  Create a new pull request
+
+## Liability
+
+We take no responsibility for the use of this tool, or external
+instances provided by third parties. We strongly recommend you abide
+by the valid official regulations in your country. Furthermore, we
+refuse liability for any inappropriate or malicious use of this
+tool. This tool is provided to you in the spirit of free, open
+software.
+
+You may view the LICENSE in which this software is provided to you
+[here](./LICENSE).
+
+> IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+> CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+> TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+> SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 [1]: https://github.com/supercrabtree/k
 [2]: https://en.wikipedia.org/wiki/Z_shell
 [3]: https://nim-lang.org
 [4]: https://en.wikipedia.org/wiki/Kanban
 [6]: https://github.com/asdf-vm/asdf
-[7]: https://badge.waffle.io/03e04bd3c5dd71dd392210b4479adccc.svg?columns=all
-[8]: https://waffle.io/OldhamMade/ll
-[9]: https://api.travis-ci.org/OldhamMade/ll.svg?branch=master
-[10]: https://travis-ci.org/OldhamMade/ll

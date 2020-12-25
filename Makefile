@@ -1,40 +1,32 @@
-define usage
-Options:
-  build		development build
-  test		run test suite
-  fulltest	run test suite within a local Travis-CI container
-  release	release build, optimised for speed
-  install	build a release version then mv to /usr/local/bin
-  clean		remove build artefacts
-endef
-export usage
-
 .PHONY: all release build test profile clean help
 
-all: test
+all: release
 
-build:
+build:  ## development build
 	@nim c src/ll.nim
 
-test:
-	@nimble test
+test:  ## run test suite
+	@nimble -y test --verbose
 
-profile:
+profile:  ## run profiler
 	@nimble profile
 
-fulltest:
-	@docker-compose -f .docker-compose.yml up --build
+release:  ## release build, optimised for speed
+	@nimble -y build --nilseqs:on --verbose --opt:speed -d:release # --passC:-Ofast --threads:off --threadanalysis:off
 
-release:
-	@nimble build --nilseqs:on --verbose --opt:speed -d:release # --passC:-Ofast --threads:off --threadanalysis:off
-
-install: release
+install: release  ## create a release build and install to /usr/local/bin
 	@mv ./ll /usr/local/bin/ll
 
-clean:
+clean:  ## remove build artefacts
 	@find . -type d -iname 'nimcache' | xargs rm -rf
 	@rm -f ll
 	@rm -f src/ll
 
-help:
-	@echo "$$usage"
+help:  ## display this help
+	@echo "Options:"
+	@grep -E '^[a-zA-Z%_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z%_-]+:.*?##@deprecated.*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?##@deprecated "}; {printf "  \033[31m%-18s\033[0m [deprecated] %s\n", $$1, $$2}'
+
+# catch-all
+%:
+	@:
