@@ -8,9 +8,13 @@ on:
       - main
       - master
 
+env:
+  RELEASE_VERSION: production
+  UPLOAD_URL: ""
+
 jobs:
   release:
-    name: Create Release
+    name: "Release"
     runs-on: ubuntu-latest
 
     steps:
@@ -29,7 +33,8 @@ jobs:
         uses: gittools/actions/gitversion/execute@v0.9.6
 
       - name: "[Version] Capture"
-        run: echo "RELEASE_VERSION=${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_ENV
+        run: |
+          echo "RELEASE_VERSION=${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_ENV
 
       - name: "[Release] Create"
         id: create_release
@@ -43,3 +48,89 @@ jobs:
             Please see the changelog for details of this release
           draft: false
           prerelease: false
+
+      - name: "[Release] Capture"
+        run: |
+          echo "UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_ENV
+
+      - name: "[Release] Capture vars"
+        run: |
+          echo "${{env.RELEASE_VERSION}}" > version
+          echo "${{env.UPLOAD_URL}}" > uploadurl
+
+      - name: "[Release] Upload artifacts"
+        uses: actions/upload-artifact@v1
+        with:
+          name: details
+          path: version
+
+      - name: "[Release] Upload artifacts"
+        uses: actions/upload-artifact@v1
+        with:
+          name: details
+          path: uploadurl
+
+  artifacts:
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+
+    name: "Build: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    needs: release
+
+    steps:
+      - name: "[Git] Checkout code"
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: "[Release] Download artifacts"
+        uses: actions/download-artifact@v1
+        with:
+          name: details
+
+      - name: "[Env] Write"
+        run: |
+          mv details/* .
+          echo "RELEASE_VERSION=$(cat version)" >> $GITHUB_ENV
+          echo "UPLOAD_URL=$(cat uploadurl)" >> $GITHUB_ENV
+
+      - name: "[Build] Install deps"
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-fast update -qq
+          sudo apt-fast --no-install-recommends -yq install curl git
+
+      - name: "[Build] Install asdf"
+        run: |
+          [ -d ~/.asdf ] || git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.8.0
+
+      - name: "[Build] Install nim"
+        run: |
+          source $HOME/.asdf/asdf.sh
+          [ -e $(asdf plugin list|grep nim) ] && asdf plugin add nim
+          asdf install nim latest
+
+      - name: "[Build] Create build for ${{ matrix.os }}"
+        run: |
+          source $HOME/.asdf/asdf.sh
+          asdf info
+          asdf global nim $(asdf list nim|tail -n 1)
+          make release
+          tar czf ll-${{env.RELEASE_VERSION}}-${{ matrix.os }}.tar.gz ./ll
+
+      - name: "[Release] Upload build for ${{ matrix.os }} to ${{env.UPLOAD_URL}}"
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{env.UPLOAD_URL}}
+          asset_path: ll-${{env.RELEASE_VERSION}}-${{ matrix.os }}.tar.gz
+          asset_name: ll-${{env.RELEASE_VERSION}}-${{ matrix.os }}.tar.gz
+          asset_content_type: application/gzip

@@ -12,7 +12,16 @@ profile:  ## run profiler
 	@nimble profile
 
 release:  ## release build, optimised for speed
-	@nimble -y build --nilseqs:on --verbose --opt:speed -d:release # --passC:-Ofast --threads:off --threadanalysis:off
+	@nimble -y build \
+	-d:release \
+	--gc:arc \
+	--deepCopy:on \
+	--nilseqs:on \
+	--verbose \
+	--opt:speed \
+	# --passC:-Ofast \
+	# --threads:off \
+	# --threadanalysis:off
 
 install: release  ## create a release build and install to /usr/local/bin
 	@mv ./ll /usr/local/bin/ll

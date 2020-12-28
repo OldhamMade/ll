@@ -20,8 +20,8 @@ import llpkg/display
 
 const
   AppName = "ll"
-  AppVersion = "0.1.1"
-  AppVersionFull = "$1, version $2".format(AppName, AppVersion)
+  AppVersion = staticRead("../version")
+  AppVersionFull = "$1, version: $2".format(AppName, AppVersion)
 
 
 type
@@ -81,19 +81,19 @@ type
     id: tuple[device: DeviceId, file: FileId]
     kind: FileType
     size: BiggestInt
-    permissions: set[FilePermission]
-    linkCount: BiggestInt
-    lastAccessTime: times.Time
-    lastWriteTime: times.Time
-    lastWriteTimeNanosec: int
-    creationTime: times.Time
-    blocks: int
     owner: tuple[group: Gid, user: Uid]
     symlink: string
     symlinkBroken: bool
+    linkCount: BiggestInt
+    creationTime: times.Time
+    lastAccessTime: times.Time
+    lastWriteTime: times.Time
+    lastWriteTimeNanosec: int
+    blocks: int
     executable: bool
     mode: Mode
     hidden: bool
+    permissions: set[FilePermission]
     gitInsideWorkTree: bool
     gitStatus: GitStatus
 

@@ -1,22 +1,22 @@
-# `ll` - a more informative `ls`, based on [`k`][1]
+# `ll` - a more informative `ls`, based on [`k`][k]
 
 ![CI](https://github.com/OldhamMade/ll/workflows/CI/badge.svg)
 
 
 ## Description
 
-`ll` is an alternative to [`k`][1], which was created to make
+`ll` is an alternative to [`k`][k], which was created to make
 directory listings more informative and readable, using colour to add
 visual weight to important information in the listing.
 
 ### Motivation
 
-[`k`][1] only works with [`zsh`][2], and I've found that it can
+[`k`][k] only works with [`zsh`][zsh], and I've found that it can
 occasionally be a little slow when working with large directories or
 with large git repositories. I was looking for a project which would
-be a good match to learn/use [`nim`][3], and this seemed like a great
+be a good match to learn/use [`nim`][nim], and this seemed like a great
 opportunity to make something a little more general-purpose that could
-be used without the [`zsh`][2] dependency.
+be used without the [`zsh`][zsh] dependency.
 
 ## Features
 
@@ -69,17 +69,19 @@ listings with many git-tracked entries `ll` is still sub-second.
 
 ## Installation
 
-Binary distributions are planned, but for now it's possible to build
-and install using the following instructions.
+[The latest binary distribution is avilable here.][builds]
+
+It is also possible to build and install using the following
+instructions:
 
 ### Requirements
 
-- [Nim][3], minimum v1.2.*
+- [Nim][nim], minimum v1.2.*
 - `make`
 
 ### Steps
 
-Firstly install [Nim][3]. I personally use [`asdf`][6] to manage Nim
+Firstly install [Nim][nim]. I personally use [`asdf`][asdf] to manage Nim
 versions on my machine. With `asdf` installed, this is as simple as
 calling `asdf install nim latest`.
 
@@ -110,9 +112,9 @@ That's it. For more options, pass `-?` or `--help`.
 - [ ] Support light themes
 - [ ] Support globs
 
-### Fixes over [`k`][1]
+### Fixes over [`k`][k]
 
-* [`k`][1] has an odd behaviour; given `pwd` is a git-tracked
+* [`k`][k] has an odd behaviour; given `pwd` is a git-tracked
 directory, if you `k somedir` where `somedir` contains git-tracked
 directories but isn't itself tracked, `k` reports as though it is
 working inside a work-tree. `ll` reports this as one would expect, as
@@ -121,7 +123,7 @@ though `pwd` is `somedir`. **UPDATE:** This has now
 
 ### Future plans
 
-According to the [`k`][1] source, there are future plans to colorise
+According to the [`k`][k] source, there are future plans to colorise
 file permissions. If this happens, I plan to bring those changes
 over. If any other enhancements are added, I hope to port those also.
 
@@ -164,8 +166,8 @@ You may view the LICENSE in which this software is provided to you
 > SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-[1]: https://github.com/supercrabtree/k
-[2]: https://en.wikipedia.org/wiki/Z_shell
-[3]: https://nim-lang.org
-[4]: https://en.wikipedia.org/wiki/Kanban
-[6]: https://github.com/asdf-vm/asdf
+[k]: https://github.com/supercrabtree/k
+[zsh]: https://en.wikipedia.org/wiki/Z_shell
+[nim]: https://nim-lang.org
+[asdf]: https://github.com/asdf-vm/asdf
+[builds]: https://github.com/OldhamMade/ll/releases/latest
