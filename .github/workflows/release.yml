@@ -10,8 +10,16 @@ on:
 
 jobs:
   release:
-    name: Create Release
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+
+    name: "Create Release: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: "[Git] Checkout code"
@@ -31,6 +39,9 @@ jobs:
       - name: "[Version] Capture"
         run: echo "RELEASE_VERSION=${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_ENV
 
+      - name: "[Version] Write"
+        run: echo "${{env.RELEASE_VERSION}}" > version
+
       - name: "[Release] Create"
         id: create_release
         uses: actions/create-release@v1
@@ -43,3 +54,33 @@ jobs:
             Please see the changelog for details of this release
           draft: false
           prerelease: false
+
+      - name: "[Build] Install deps"
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-fast update -qq
+          sudo apt-fast --no-install-recommends -yq install curl git
+
+      - name: "[Build] Install asdf"
+        run: |
+          [ -d ~/.asdf ] || git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.8.0
+
+      - name: "[Build] Install nim dependencies"
+        run: |
+          source $HOME/.asdf/asdf.sh
+          [ -e $(asdf plugin list|grep nim) ] && asdf plugin add nim
+          asdf install nim latest
+
+      - name: "[Build] Create build for ${{ matrix.os }}"
+        run: |
+          source $HOME/.asdf/asdf.sh
+          asdf info
+          asdf global nim $(asdf list nim|tail -n 1)
+          make release
+          tar czf ll-${{ matrix.os }}.tgz ./ll
+
+      - name: "[Release] Upload build for ${{ matrix.os }}"
+        uses: actions/upload-artifact@v2
+        with:
+          name: ll binary (${{ matrix.os }})
+          path: ll-${{ matrix.os }}.tgz
