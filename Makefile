@@ -23,8 +23,9 @@ release:  ## release build, optimised for speed
 	# --threads:off \
 	# --threadanalysis:off
 
-install: release  ## create a release build and install to /usr/local/bin
-	@mv ./ll /usr/local/bin/ll
+install: release  ## create a release build and install to ~/.local/bin
+	@mv ./ll ~/.local/bin/ll
+  @echo "Ensure ~/.local/bin is in your PATH"
 
 clean:  ## remove build artefacts
 	@find . -type d -iname 'nimcache' | xargs rm -rf
